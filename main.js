@@ -1,6 +1,48 @@
 const notes = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
 const scale = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
 
+const c = new AudioContext()
+var attack = 0.01;
+var release = 0.2;
+
+function play(note, fundamental) {
+    i = shiftArray(fundamental).indexOf(note)
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.frequency.value = 440*Math.pow(2, i/12);
+    o.connect(g);
+    g.connect(c.destination);
+    const now = c.currentTime;
+    g.gain.setValueAtTime(0, now)
+    g.gain.linearRampToValueAtTime(1, now + attack)
+    g.gain.linearRampToValueAtTime(0, now + attack + release)
+    o.start();
+    o.stop(now + attack + release);
+}
+
+function playScale() {
+    //IIFE Immediately invoked function expression
+    for (i=0; i<7; i++){
+        (function(val) {
+            setTimeout(function () {play(scale[val], scale[0])}, 200*val)
+        })(i);
+    }
+}
+
+function shiftArray(fundamental) {
+    toShift = [...notes]
+    f = toShift.indexOf(fundamental)
+    for (i=0; i<f; i++) {
+        toShift.push(toShift[i])
+        toShift[i] = "not"
+    }
+    shifted = toShift
+    //shifted = toShift.splice(f, toShift.length)
+
+    return shifted
+}
+
+
 //main app
 const app = Vue.createApp({})
 
@@ -60,6 +102,7 @@ app.component('guessnote', {
                 this.score += 1
                 // Show complete correct scale
                 this.generatedScale = [...scale]
+                playScale()
                 //alert("Correct!")
             } else {
                 alert("You died! Correct answer is " + this.correctAnswer)
@@ -88,6 +131,7 @@ app.component('guessnote', {
             <div v-for="note in generatedScale">{{ note }}</div>
             <button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button>
             <button v-on:click="generateScale; questionsNumberDone += 1">Skip</button>
+            <button onclick="playScale()">Listen scale</button>
         </div>
     `
 })
