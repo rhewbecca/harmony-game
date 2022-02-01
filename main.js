@@ -19,18 +19,21 @@ app.component('mainmenu', {
     `
 })
 
-
 app.component('guessnote', {
     data() {
         return{
             generatedScale: null,
             generatedAnswers: null,
             correctAnswer: null,
-            started: false
+            started: false,
+            score: 0,
+            questionsNumberTot: 10,
+            questionsNumberDone: 0
         }
     },
     methods: {
         generateScale() {
+            this.questionsNumberDone +=1
             this.generatedScale = [...scale]
             var pos = Math.floor(Math.random()*7)
             this.correctAnswer = this.generatedScale[pos]
@@ -51,27 +54,40 @@ app.component('guessnote', {
             this.generatedAnswers = shuffle(generatedAnswers)
         },
         checkAnswer(e) {
+            // Check if correct or not
             if(e == this.correctAnswer){
                 this.correct = true
-                //alert("Correct!")
+                this.score += 1
                 // Show complete correct scale
                 this.generatedScale = [...scale]
-                // Wait before next scale
-                setTimeout(this.generateScale, 1000)
+                //alert("Correct!")
             } else {
-                alert("You died!")
+                alert("You died! Correct answer is " + this.correctAnswer)
             }
+
+            // All questions completed
+            if(this.questionsNumberDone == this.questionsNumberTot){
+                alert("Total score: " + this.score + "/" + this.questionsNumberTot)
+                this.started = false
+            }
+
+            // Wait before next scale
+            setTimeout(this.generateScale, 1000)
+        },
+        resetGame() {
+            this.score = 0
+            this.questionsNumberDone = 0
         }
     },
     template: `
         <div>
-            <button @click="started=true; generateScale()">Start</button>
-            <button @click="started=false">Stop</button>
+            <button @click="started=true; resetGame(); generateScale()">New game</button>
+            <div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div>
         </div>
         <div v-if="started">
             <div v-for="note in generatedScale">{{ note }}</div>
             <button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button>
-            <button v-on:click="generateScale">Skip</button>
+            <button v-on:click="generateScale; questionsNumberDone += 1">Skip</button>
         </div>
     `
 })
