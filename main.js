@@ -1,5 +1,12 @@
 const notes = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
-const scale = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+//const scale = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+const distances = [["ionian",    [2,2,1,2,2,2,1]],
+                   ["dorian",    [1,2,2,1,2,2,2]],
+                   ["phrygian",  [2,1,2,2,1,2,2]],
+                   ["lydian",    [2,2,1,2,2,1,2]],
+                   ["mixolydian",[2,2,2,1,2,2,1]],
+                   ["aeolian",   [1,2,2,2,1,2,2]],
+                   ["locrian",   [2,1,2,2,2,1,2]]]
 
 const c = new AudioContext()
 var attack = 0.01;
@@ -9,7 +16,7 @@ function play(note, fundamental) {
     i = shiftArray(fundamental).indexOf(note)
     const o = c.createOscillator();
     const g = c.createGain();
-    o.frequency.value = 440*Math.pow(2, i/12);
+    o.frequency.value = 220*Math.pow(2, i/12);
     o.connect(g);
     g.connect(c.destination);
     const now = c.currentTime;
@@ -29,15 +36,24 @@ function playScale() {
     }
 }
 
-function shiftArray(fundamental) {
-    toShift = [...notes]
-    f = toShift.indexOf(fundamental)
-    for (i=0; i<f; i++) {
-        toShift.push(toShift[i])
-        toShift[i] = "not"
+function shiftArray(index) {
+    // to shift "notes" array
+    if (isNaN(index)) {
+        toShift = [...notes]
+        f = toShift.indexOf(index)
+        for (i=0; i<f; i++) {
+            toShift.push(toShift[i])
+            toShift[i] = "not"
+        }
+        shifted = toShift
     }
-    shifted = toShift
-    //shifted = toShift.splice(f, toShift.length)
+    //to shift any array
+    // else {
+    //     for (i=0; i<index; i++) {
+    //         toShift.push(toShift[i])
+    //     }
+    // shifted = toShift.splice(index, toShift.length)
+    // }
 
     return shifted
 }
@@ -64,7 +80,9 @@ app.component('mainmenu', {
 app.component('guessnote', {
     data() {
         return{
+            scale: null,
             generatedScale: null,
+            generatedScaleName: null,
             generatedAnswers: null,
             correctAnswer: null,
             started: false,
@@ -76,11 +94,31 @@ app.component('guessnote', {
     methods: {
         generateScale() {
             this.questionsNumberDone +=1
-            this.generatedScale = [...scale]
+            this.randomScale()
+            this.generatedScale = [...this.scale]
             var pos = Math.floor(Math.random()*7)
             this.correctAnswer = this.generatedScale[pos]
             this.generatedScale[pos] = '_'
             this.generateAnswers()
+        },
+        randomScale() {
+            scale = []
+            //Random starting note
+            f_index = Math.floor(Math.random()*12)
+            fundamental = notes[f_index]
+            //Random scale type
+            r = Math.floor(Math.random()*7)
+            this.generatedScaleName = distances[r][0]
+            typeDist = distances[r][1]
+            //Build scale
+            list = shiftArray(fundamental)
+            scale[0] = fundamental
+            index = 0
+            for (i=0; i<7; i++){
+                index += typeDist[i]
+                scale.push(list[f_index + index])
+            }
+            this.scale = scale
         },
         generateAnswers() {
             const notes_tmp = [...notes].filter(x => scale.indexOf(x) === -1)
@@ -101,7 +139,7 @@ app.component('guessnote', {
                 this.correct = true
                 this.score += 1
                 // Show complete correct scale
-                this.generatedScale = [...scale]
+                this.generatedScale = [...this.scale]
                 playScale()
                 //alert("Correct!")
             } else {
@@ -115,7 +153,7 @@ app.component('guessnote', {
             }
 
             // Wait before next scale
-            setTimeout(this.generateScale, 1000)
+            setTimeout(this.generateScale, 1500)
         },
         resetGame() {
             this.score = 0
@@ -130,8 +168,9 @@ app.component('guessnote', {
         <div v-if="started">
             <div v-for="note in generatedScale">{{ note }}</div>
             <button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button>
-            <button v-on:click="generateScale; questionsNumberDone += 1">Skip</button>
+            <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
             <button onclick="playScale()">Listen scale</button>
+            <button>Hint: {{ generatedScaleName }}</button>
         </div>
     `
 })
