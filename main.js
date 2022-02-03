@@ -76,6 +76,43 @@ function shuffle(array) {
   return array;
 }
 
+// Drag & drop elements
+//function drag(el) {
+//   var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+//   document.getElementById(el.id).onmousedown = dragMouseDown;
+//
+//
+//   function dragMouseDown(e) {
+//     e = e || window.event;
+//     e.preventDefault();
+//     // get the mouse cursor position at startup:
+//     pos3 = e.clientX;
+//     pos4 = e.clientY;
+//     document.onmouseup = closeDragElement;
+//     // call a function whenever the cursor moves:
+//     document.onmousemove = elementDrag;
+//   }
+//
+//   function elementDrag(e) {
+//     e = e || window.event;
+//     e.preventDefault();
+//     // calculate the new cursor position:
+//     pos1 = pos3 - e.clientX;
+//     pos2 = pos4 - e.clientY;
+//     pos3 = e.clientX;
+//     pos4 = e.clientY;
+//     // set the element's new position:
+//     el.style.top = (el.offsetTop - pos2) + "px";
+//     el.style.left = (el.offsetLeft - pos1) + "px";
+//   }
+//
+//   function closeDragElement() {
+//     // stop moving when mouse button is released:
+//     document.onmouseup = null;
+//     document.onmousemove = null;
+//   }
+// }
+
 //------------------------------------------------------------------------------------------
 
 //main app
@@ -85,7 +122,7 @@ app.component('mainmenu', {
     data() {
         return{
             currentPage: null,
-            games: ['guessnote', 'guessscale', 'reorderscale']
+            games: ['guessnote', 'guessscale', 'reordernotes']
         }
     },
     template: `
@@ -133,7 +170,7 @@ app.component('guessnote', {
             list = shiftArray(fundamental)
             scale[0] = fundamental
             index = 0
-            for (i=0; i<7; i++){
+            for (i=0; i<6; i++){
                 index += typeDist[i]
                 scale.push(list[f_index + index])
             }
@@ -228,7 +265,7 @@ app.component('guessscale', {
             list = shiftArray(fundamental)
             scale[0] = fundamental
             index = 0
-            for (i=0; i<7; i++){
+            for (i=0; i<6; i++){
                 index += typeDist[i]
                 scale.push(list[f_index + index])
             }
@@ -286,6 +323,99 @@ app.component('guessscale', {
         </div>
     `
 })
+
+app.component('reordernotes', {
+    data() {
+        return{
+            scale: null,
+            generatedScale: null,
+            generatedScaleName: null,
+            started: false,
+            score: 0,
+            questionsNumberTot: 10,
+            questionsNumberDone: 0,
+            clicked: false,
+            firstNote: null,
+            secondNote: null,
+            moves: 0
+        }
+    },
+    methods: {
+        generateScale() {
+            this.questionsNumberDone +=1
+            this.randomScale()
+            this.generatedScale = shuffle([...this.scale])
+        },
+        randomScale() {
+            scale = []
+            //Random starting note
+            f_index = Math.floor(Math.random()*12)
+            fundamental = notes[f_index]
+            //Random scale type
+            r = Math.floor(Math.random()*7)
+            this.generatedScaleName = distances[r][0]
+            typeDist = distances[r][1]
+            //Build scale
+            list = shiftArray(fundamental)
+            scale[0] = fundamental
+            index = 0
+            for (i=0; i<6; i++){
+                index += typeDist[i]
+                scale.push(list[f_index + index])
+            }
+            this.scale = scale
+            // Debug
+            console.log(this.scale)
+        },
+        checkAnswer() {
+            // Check if correct or not
+            if (this.generatedScale.every(function(el, idx){return el == this.scale[idx]})) {
+                playScale()
+                // All questions completed
+                if(this.questionsNumberDone == this.questionsNumberTot){
+                    alert("Total score: " + this.score + "/" + this.questionsNumberTot)
+                    this.started = false
+                }
+                // Wait before next scale
+                setTimeout(this.generateScale, 1500)
+            }
+        },
+        resetGame() {
+            this.score = 0
+            this.questionsNumberDone = 0
+            this.moves = 0
+        },
+        swap(el) {
+            if (this.clicked == true){
+                this.secondNote = el
+                a = this.generatedScale.indexOf(this.firstNote)
+                b = this.generatedScale.indexOf(this.secondNote)
+                this.generatedScale[a] = this.secondNote
+                this.generatedScale[b] = this.firstNote
+                this.clicked = false
+                this.moves += 1
+                this.checkAnswer()
+            } else {
+                this.clicked = true
+                this.firstNote = el
+            }
+        }
+    },
+    template: `
+        <div>
+            <button @click="started=true; resetGame(); generateScale()">New game</button>
+            <div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div>
+            <div v-if="started==true">Moves: {{ moves }}</div>
+        </div>
+        <div v-if="started">
+            <div class="draggable" v-for="note in generatedScale" v-bind:id="note" @click="swap(note)">{{ note }}</div>
+            <button onclick="playScale()">Listen scale</button>
+            <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
+            <button>Hint: {{ generatedScaleName }}</button>
+        </div>
+    `
+})
+
 
 // Mount App
 const mountedApp = app.mount('#app')

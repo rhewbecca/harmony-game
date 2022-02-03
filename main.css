@@ -1,0 +1,7 @@
+.draggable{
+    width: 5%;
+    height: 20px;
+    border: 2px solid black;
+    text-align: center;
+    cursor: pointer;
+}
