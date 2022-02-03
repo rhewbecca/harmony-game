@@ -12,8 +12,9 @@ const c = new AudioContext()
 var attack = 0.01;
 var release = 0.2;
 
-// Global functions:
+// Global functions:----------------------------------------------------------------------
 
+//Play note of shifted "notes" array (shifting based on first note of scale)
 function play(note, fundamental) {
     i = shiftArray(fundamental).indexOf(note)
     const o = c.createOscillator();
@@ -38,6 +39,7 @@ function playScale() {
     }
 }
 
+// Intended for shifting "notes" array
 function shiftArray(index) {
     // to shift "notes" array
     if (isNaN(index)) {
@@ -74,6 +76,7 @@ function shuffle(array) {
   return array;
 }
 
+//------------------------------------------------------------------------------------------
 
 //main app
 const app = Vue.createApp({})
