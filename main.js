@@ -12,6 +12,8 @@ const c = new AudioContext()
 var attack = 0.01;
 var release = 0.2;
 
+// Global functions:
+
 function play(note, fundamental) {
     i = shiftArray(fundamental).indexOf(note)
     const o = c.createOscillator();
@@ -58,6 +60,20 @@ function shiftArray(index) {
     return shifted
 }
 
+// Fisher-Yates (aka Knuth) Shuffle
+function shuffle(array) {
+  let currentIndex = array.length,  randomIndex;
+  while (currentIndex != 0) {
+
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+  return array;
+}
+
 
 //main app
 const app = Vue.createApp({})
@@ -66,7 +82,7 @@ app.component('mainmenu', {
     data() {
         return{
             currentPage: null,
-            games: ['guessnote', 'guessscale', 'reorderscale', '...']
+            games: ['guessnote', 'guessscale', 'reorderscale']
         }
     },
     template: `
@@ -175,20 +191,98 @@ app.component('guessnote', {
     `
 })
 
-// Fisher-Yates (aka Knuth) Shuffle
-// Global function
-function shuffle(array) {
-  let currentIndex = array.length,  randomIndex;
-  while (currentIndex != 0) {
+app.component('guessscale', {
+    data() {
+        return{
+            scale: null,
+            generatedScale: null,
+            generatedScaleName: null,
+            generatedAnswers: null,
+            correctAnswer: null,
+            started: false,
+            score: 0,
+            questionsNumberTot: 10,
+            questionsNumberDone: 0
+        }
+    },
+    methods: {
+        generateScale() {
+            this.questionsNumberDone +=1
+            this.randomScale()
+            this.generatedScale = [...this.scale]
+            this.generateAnswers()
+        },
+        randomScale() {
+            scale = []
+            //Random starting note
+            f_index = Math.floor(Math.random()*12)
+            fundamental = notes[f_index]
+            //Random scale type
+            r = Math.floor(Math.random()*7)
+            this.generatedScaleName = distances[r][0]
+            typeDist = distances[r][1]
+            //Build scale
+            list = shiftArray(fundamental)
+            scale[0] = fundamental
+            index = 0
+            for (i=0; i<7; i++){
+                index += typeDist[i]
+                scale.push(list[f_index + index])
+            }
+            this.scale = scale
+        },
+        generateAnswers() {
+            const generatedAnswers = [this.generatedScaleName]
+            while (generatedAnswers.length<4){
+                var el = distances[Math.floor(Math.random()*5)][0]
+                if ((new Set(generatedAnswers)).has(el)){
+                    continue
+                } else {
+                    generatedAnswers.push(el)
+                }
+            }
+            this.generatedAnswers = shuffle(generatedAnswers)
+        },
+        checkAnswer(e) {
+            // Check if correct or not
+            if(e == this.generatedScaleName){
+                this.correct = true
+                this.score += 1
+                // Show complete correct scale
+                this.generatedScale = [...this.scale]
+                playScale()
+                //alert("Correct!")
+            } else {
+                alert("You died! Correct answer is " + this.generatedScaleName)
+            }
 
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
+            // All questions completed
+            if(this.questionsNumberDone == this.questionsNumberTot){
+                alert("Total score: " + this.score + "/" + this.questionsNumberTot)
+                this.started = false
+            }
 
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex], array[currentIndex]];
-  }
-  return array;
-}
+            // Wait before next scale
+            setTimeout(this.generateScale, 1500)
+        },
+        resetGame() {
+            this.score = 0
+            this.questionsNumberDone = 0
+        }
+    },
+    template: `
+        <div>
+            <button @click="started=true; resetGame(); generateScale()">New game</button>
+            <div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div>
+        </div>
+        <div v-if="started">
+            <div v-for="note in generatedScale">{{ note }}</div>
+            <button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button>
+            <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
+            <button onclick="playScale()">Listen scale</button>
+        </div>
+    `
+})
 
 // Mount App
 const mountedApp = app.mount('#app')
