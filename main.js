@@ -76,42 +76,96 @@ function shuffle(array) {
   return array;
 }
 
-// Drag & drop elements
-//function drag(el) {
-//   var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-//   document.getElementById(el.id).onmousedown = dragMouseDown;
-//
-//
-//   function dragMouseDown(e) {
-//     e = e || window.event;
-//     e.preventDefault();
-//     // get the mouse cursor position at startup:
-//     pos3 = e.clientX;
-//     pos4 = e.clientY;
-//     document.onmouseup = closeDragElement;
-//     // call a function whenever the cursor moves:
-//     document.onmousemove = elementDrag;
-//   }
-//
-//   function elementDrag(e) {
-//     e = e || window.event;
-//     e.preventDefault();
-//     // calculate the new cursor position:
-//     pos1 = pos3 - e.clientX;
-//     pos2 = pos4 - e.clientY;
-//     pos3 = e.clientX;
-//     pos4 = e.clientY;
-//     // set the element's new position:
-//     el.style.top = (el.offsetTop - pos2) + "px";
-//     el.style.left = (el.offsetLeft - pos1) + "px";
-//   }
-//
-//   function closeDragElement() {
-//     // stop moving when mouse button is released:
-//     document.onmouseup = null;
-//     document.onmousemove = null;
-//   }
-// }
+// Visualizer
+const recording_length = 2;
+
+var recordBuffer = c.createBuffer(1, recording_length*c.sampleRate, c.sampleRate);
+
+var bindex = 0;
+var pn;
+var recording = true;
+
+async function rec() {
+  //Can await beause it's an async function
+  var stream = await navigator.mediaDevices.getUserMedia({audio:true});
+  //Media stream source
+  var mss = c.createMediaStreamSource(stream);
+  //Deprecated:------------------------------
+  pn = c.createScriptProcessor(1024, 1, 1);
+  pn.onaudioprocess = function(event) {
+    if(recording == false) {return;}
+    const dataIn = event.inputBuffer.getChannelData(0);
+    var recordBufferData = recordBuffer.getChannelData(0);
+    for(var i=0; i<dataIn.length; i++) {
+      //Get bindex then increment it; modulus make loop over buffer
+      recordBufferData[bindex++ % recordBuffer.length] = dataIn[i];
+    }
+
+    var dataArray = new Uint8Array(bufferLength);
+
+  }
+  mss.connect(pn);
+  //-----------------------------------------
+  mss.connect(analyser)
+}
+
+const canvas = document.getElementById("time");
+ctx = canvas.getContext("2d");
+//ctx.strokeStyle = "black";
+const canvas2 = document.getElementById("freq");
+ctx2 = canvas2.getContext("2d");
+
+function drawBuffer() {
+    ctx.beginPath();
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.moveTo(0,canvas.height/2);
+    dataIn = recordBuffer.getChannelData(0);
+    step = recordBuffer.length/canvas.width;
+    for(var i=0; i<canvas.width; i++) {
+      ctx.lineTo(i,canvas.height/2 + 400*dataIn[Math.round(i*step)]);
+    }
+    ctx.stroke();
+
+    //Draw cursor line
+    markPosition = Math.round(bindex % recordBuffer.length/step);
+    ctx.moveTo(markPosition, 0);
+    ctx.lineTo(markPosition, canvas.height);
+    ctx.stroke();
+
+    window.requestAnimationFrame(drawBuffer);
+}
+
+var analyser = c.createAnalyser();
+analyser.fftSize = 1024;
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Float32Array(bufferLength);
+analyser.getFloatFrequencyData(dataArray);
+
+function draw() {
+  //Schedule next redraw
+  requestAnimationFrame(draw);
+
+  //Get spectrum data
+  analyser.getFloatFrequencyData(dataArray);
+
+  //Draw black background
+  ctx2.fillStyle = 'rgb(255, 255, 255)';
+  ctx2.fillRect(0, 0, canvas2.width, canvas2.height);
+
+  //Draw spectrum
+  const barWidth = (canvas2.width / bufferLength) * 2.5;
+  let posX = 0;
+  for (let i = 0; i < bufferLength; i++) {
+    const barHeight = (dataArray[i] + 140) * 2;
+    ctx2.fillStyle = 'rgb(0, 0, 0)';
+    ctx2.fillRect(posX, canvas2.height - barHeight / 2, barWidth, barHeight / 2);
+    posX += barWidth + 1;
+  }
+};
+
+rec();
+drawBuffer();
+draw();
 
 //------------------------------------------------------------------------------------------
 
