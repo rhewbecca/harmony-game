@@ -1,5 +1,20 @@
 const notes = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
-//const scale = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+
+const frequencies = [
+    [440.00, 880.00, 1760.00, 3520.00],
+    [466.16, 932.33, 1864.66, 3729.31],
+    [493.88, 987.77, 1975.53, 3951.07],
+    [523.25, 1046.50, 2093.00, 4186.01],
+    [554.37, 1108.73, 2217.46, 4434.92],
+    [587.33, 1174.66, 2349.32, 4698.63],
+    [622.25, 1244.51, 2489.02, 4978.03],
+    [659.25, 1318.51, 2637.02, 5274.04],
+    [698.46, 1396.91, 2793.83, 5587.65],
+    [739.99, 1479.98, 2959.96, 5919.91],
+    [783.99, 1567.98, 3135.96, 6271.93],
+    [830.61, 1661.22, 3322.44, 6644.88]
+]
+
 const distances = [["ionian",    [2,2,1,2,2,2,1]],
                    ["dorian",    [1,2,2,1,2,2,2]],
                    ["phrygian",  [2,1,2,2,1,2,2]],
@@ -137,9 +152,11 @@ function drawBuffer() {
 
 var analyser = c.createAnalyser();
 analyser.fftSize = 1024;
+analyser.smoothingTimeConstant = 0.95;
 const bufferLength = analyser.frequencyBinCount;
 const dataArray = new Float32Array(bufferLength);
-analyser.getFloatFrequencyData(dataArray);
+// Calculate frequency bin range
+bin_range = c.sampleRate/analyser.fftSize
 
 function draw() {
   //Schedule next redraw
@@ -148,8 +165,11 @@ function draw() {
   //Get spectrum data
   analyser.getFloatFrequencyData(dataArray);
 
-  //Draw black background
-  ctx2.fillStyle = 'rgb(255, 255, 255)';
+  //Get pitch
+  note = getPitch(dataArray)
+
+  //Draw background
+  ctx2.fillStyle = 'rgb(255, 255, 255)'; //white
   ctx2.fillRect(0, 0, canvas2.width, canvas2.height);
 
   //Draw spectrum
@@ -161,7 +181,23 @@ function draw() {
     ctx2.fillRect(posX, canvas2.height - barHeight / 2, barWidth, barHeight / 2);
     posX += barWidth + 1;
   }
-};
+}
+
+function getPitch(array) {
+    max = Math.max(...array)
+    idx = array.indexOf(max)
+    freqMax = idx*bin_range
+    freqMin = freqMax - bin_range
+    note = null
+    for (i=0; i<12; i++) {
+        for (k=0; k<5; k++) {
+            if (frequencies[i][k]>=freqMin && frequencies[i][k]<freqMax) {
+                note = notes[i]
+            }
+        }
+    }
+    return note
+}
 
 rec();
 drawBuffer();
