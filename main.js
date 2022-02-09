@@ -91,118 +91,6 @@ function shuffle(array) {
   return array;
 }
 
-// Visualizer
-const recording_length = 2;
-
-var recordBuffer = c.createBuffer(1, recording_length*c.sampleRate, c.sampleRate);
-
-var bindex = 0;
-var pn;
-var recording = true;
-
-async function rec() {
-  //Can await beause it's an async function
-  var stream = await navigator.mediaDevices.getUserMedia({audio:true});
-  //Media stream source
-  var mss = c.createMediaStreamSource(stream);
-  //Deprecated:------------------------------
-  pn = c.createScriptProcessor(1024, 1, 1);
-  pn.onaudioprocess = function(event) {
-    if(recording == false) {return;}
-    const dataIn = event.inputBuffer.getChannelData(0);
-    var recordBufferData = recordBuffer.getChannelData(0);
-    for(var i=0; i<dataIn.length; i++) {
-      //Get bindex then increment it; modulus make loop over buffer
-      recordBufferData[bindex++ % recordBuffer.length] = dataIn[i];
-    }
-
-    var dataArray = new Uint8Array(bufferLength);
-
-  }
-  mss.connect(pn);
-  //-----------------------------------------
-  mss.connect(analyser)
-}
-
-const canvas = document.getElementById("time");
-ctx = canvas.getContext("2d");
-//ctx.strokeStyle = "black";
-const canvas2 = document.getElementById("freq");
-ctx2 = canvas2.getContext("2d");
-
-function drawBuffer() {
-    ctx.beginPath();
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.moveTo(0,canvas.height/2);
-    dataIn = recordBuffer.getChannelData(0);
-    step = recordBuffer.length/canvas.width;
-    for(var i=0; i<canvas.width; i++) {
-      ctx.lineTo(i,canvas.height/2 + 400*dataIn[Math.round(i*step)]);
-    }
-    ctx.stroke();
-
-    //Draw cursor line
-    markPosition = Math.round(bindex % recordBuffer.length/step);
-    ctx.moveTo(markPosition, 0);
-    ctx.lineTo(markPosition, canvas.height);
-    ctx.stroke();
-
-    window.requestAnimationFrame(drawBuffer);
-}
-
-var analyser = c.createAnalyser();
-analyser.fftSize = 1024;
-analyser.smoothingTimeConstant = 0.95;
-const bufferLength = analyser.frequencyBinCount;
-const dataArray = new Float32Array(bufferLength);
-// Calculate frequency bin range
-bin_range = c.sampleRate/analyser.fftSize
-
-function draw() {
-  //Schedule next redraw
-  requestAnimationFrame(draw);
-
-  //Get spectrum data
-  analyser.getFloatFrequencyData(dataArray);
-
-  //Get pitch
-  note = getPitch(dataArray)
-
-  //Draw background
-  ctx2.fillStyle = 'rgb(255, 255, 255)'; //white
-  ctx2.fillRect(0, 0, canvas2.width, canvas2.height);
-
-  //Draw spectrum
-  const barWidth = (canvas2.width / bufferLength) * 2.5;
-  let posX = 0;
-  for (let i = 0; i < bufferLength; i++) {
-    const barHeight = (dataArray[i] + 140) * 2;
-    ctx2.fillStyle = 'rgb(0, 0, 0)';
-    ctx2.fillRect(posX, canvas2.height - barHeight / 2, barWidth, barHeight / 2);
-    posX += barWidth + 1;
-  }
-}
-
-function getPitch(array) {
-    max = Math.max(...array)
-    idx = array.indexOf(max)
-    freqMax = idx*bin_range
-    freqMin = freqMax - bin_range
-    note = null
-    for (i=0; i<12; i++) {
-        for (k=0; k<5; k++) {
-            if (frequencies[i][k]>=freqMin && frequencies[i][k]<freqMax) {
-                note = notes[i]
-            }
-        }
-    }
-    return note
-}
-
-rec();
-drawBuffer();
-draw();
-
 //------------------------------------------------------------------------------------------
 
 //main app
@@ -318,6 +206,7 @@ app.component('guessnote', {
             <button onclick="playScale()">Listen scale</button>
             <button>Hint: {{ generatedScaleName }}</button>
         </div>
+        <visualizer></visualizer>
     `
 })
 
@@ -503,6 +392,98 @@ app.component('reordernotes', {
             <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
             <button>Hint: {{ generatedScaleName }}</button>
         </div>
+    `
+})
+
+app.component('visualizer', {
+    data() {
+        return{
+
+        }
+    },
+    async mounted() {
+          //Can await beause it's an async function
+          var stream = await navigator.mediaDevices.getUserMedia({audio:true});
+          //Media stream source
+          var mss = c.createMediaStreamSource(stream);
+
+          const canvas = document.getElementById("freq");
+          ctx = canvas.getContext("2d");
+
+          var analyser = c.createAnalyser();
+          analyser.fftSize = 1024;
+          analyser.smoothingTimeConstant = 0.95;
+
+          mss.connect(analyser)
+
+          const bufferLength = analyser.frequencyBinCount;
+          const dataArray = new Float32Array(bufferLength);
+          // Calculate frequency bin range
+          bin_range = c.sampleRate/analyser.fftSize
+
+          function draw() {
+            //Schedule next redraw
+            requestAnimationFrame(draw);
+
+            //Get spectrum data
+            analyser.getFloatFrequencyData(dataArray);
+
+            //Get pitch
+            note = getPitch(dataArray)
+
+            //Draw background
+            ctx.fillStyle = 'rgb(255, 255, 255)'; //white
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            //Draw spectrum
+            const barWidth = (canvas.width / bufferLength) * 2.5;
+            let posX = 0;
+            for (let i = 0; i < bufferLength; i++) {
+              const barHeight = (dataArray[i] + 140) * 2;
+              ctx.fillStyle = 'rgb(0, 0, 0)';
+              ctx.fillRect(posX, canvas.height - barHeight / 2, barWidth, barHeight / 2);
+              posX += barWidth + 1;
+            }
+          }
+
+          function getPitch(array) {
+           max = Math.max(...array)
+           idx = array.indexOf(max)
+           freqMax = idx*bin_range
+           freqMin = freqMax - bin_range
+           note = null
+           for (i=0; i<12; i++) {
+               for (k=0; k<5; k++) {
+                   if (frequencies[i][k]>=freqMin && frequencies[i][k]<freqMax) {
+                       note = notes[i]
+                   }
+               }
+           }
+           return note
+       }
+
+          draw()
+
+    },
+    methods: {
+        getPitch(array) {
+         max = Math.max(...array)
+         idx = array.indexOf(max)
+         freqMax = idx*bin_range
+         freqMin = freqMax - bin_range
+         note = null
+         for (i=0; i<12; i++) {
+             for (k=0; k<5; k++) {
+                 if (frequencies[i][k]>=freqMin && frequencies[i][k]<freqMax) {
+                     note = notes[i]
+                 }
+             }
+         }
+         return note
+     }
+    },
+    template: `
+        <canvas id="freq"></canvas>
     `
 })
 
