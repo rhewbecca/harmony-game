@@ -122,7 +122,9 @@ app.component('guessnote', {
             started: false,
             score: 0,
             questionsNumberTot: 10,
-            questionsNumberDone: 0
+            questionsNumberDone: 0,
+
+            checked: false
         }
     },
     methods: {
@@ -192,7 +194,7 @@ app.component('guessnote', {
         resetGame() {
             this.score = 0
             this.questionsNumberDone = 0
-        }
+        },
     },
     template: `
         <div>
@@ -205,8 +207,9 @@ app.component('guessnote', {
             <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
             <button onclick="playScale()">Listen scale</button>
             <button>Hint: {{ generatedScaleName }}</button>
+            <div><input type="checkbox" v-model="checked">Use mic</div>
         </div>
-        <visualizer></visualizer>
+        <visualizer v-if="checked"></visualizer>
     `
 })
 
@@ -398,30 +401,31 @@ app.component('reordernotes', {
 app.component('visualizer', {
     data() {
         return{
-
+            note: null
         }
     },
     async mounted() {
-          //Can await beause it's an async function
-          var stream = await navigator.mediaDevices.getUserMedia({audio:true});
-          //Media stream source
-          var mss = c.createMediaStreamSource(stream);
 
-          const canvas = document.getElementById("freq");
-          ctx = canvas.getContext("2d");
+        //Can await beause it's an async function
+        var stream = await navigator.mediaDevices.getUserMedia({audio:true});
+        //Media stream source
+        var mss = c.createMediaStreamSource(stream);
 
-          var analyser = c.createAnalyser();
-          analyser.fftSize = 1024;
-          analyser.smoothingTimeConstant = 0.95;
+        const canvas = document.getElementById("freq");
+        ctx = canvas.getContext("2d");
 
-          mss.connect(analyser)
+        var analyser = c.createAnalyser();
+        analyser.fftSize = 1024;
+        analyser.smoothingTimeConstant = 0.95;
 
-          const bufferLength = analyser.frequencyBinCount;
-          const dataArray = new Float32Array(bufferLength);
-          // Calculate frequency bin range
-          bin_range = c.sampleRate/analyser.fftSize
+        mss.connect(analyser)
 
-          function draw() {
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Float32Array(bufferLength);
+        // Calculate frequency bin range
+        bin_range = c.sampleRate/analyser.fftSize
+
+        function draw() {
             //Schedule next redraw
             requestAnimationFrame(draw);
 
@@ -429,7 +433,10 @@ app.component('visualizer', {
             analyser.getFloatFrequencyData(dataArray);
 
             //Get pitch
-            note = getPitch(dataArray)
+            this.note = getPitch(dataArray)
+            if (this.note != null) {
+                console.log(this.note)
+            }
 
             //Draw background
             ctx.fillStyle = 'rgb(255, 255, 255)'; //white
@@ -444,9 +451,9 @@ app.component('visualizer', {
               ctx.fillRect(posX, canvas.height - barHeight / 2, barWidth, barHeight / 2);
               posX += barWidth + 1;
             }
-          }
+        }
 
-          function getPitch(array) {
+        function getPitch(array) {
            max = Math.max(...array)
            idx = array.indexOf(max)
            freqMax = idx*bin_range
@@ -461,26 +468,10 @@ app.component('visualizer', {
            }
            return note
        }
-
-          draw()
+        draw()
 
     },
     methods: {
-        getPitch(array) {
-         max = Math.max(...array)
-         idx = array.indexOf(max)
-         freqMax = idx*bin_range
-         freqMin = freqMax - bin_range
-         note = null
-         for (i=0; i<12; i++) {
-             for (k=0; k<5; k++) {
-                 if (frequencies[i][k]>=freqMin && frequencies[i][k]<freqMax) {
-                     note = notes[i]
-                 }
-             }
-         }
-         return note
-     }
     },
     template: `
         <canvas id="freq"></canvas>
