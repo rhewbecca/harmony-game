@@ -209,7 +209,7 @@ app.component('guessnote', {
             <button>Hint: {{ generatedScaleName }}</button>
             <div><input type="checkbox" v-model="checked">Use mic</div>
         </div>
-        <visualizer v-if="checked"></visualizer>
+        <visualizer v-if="checked" @sendAnswer=checkAnswer></visualizer>
     `
 })
 
@@ -401,9 +401,15 @@ app.component('reordernotes', {
 app.component('visualizer', {
     data() {
         return{
-            note: null
+            note: "-",
+            dataArray: null,
+            analyser: null,
+            canvas: null,
+            bufferLength: 0,
+            bin_range: null
         }
     },
+    emits: ['sendAnswer'],
     async mounted() {
 
         //Can await beause it's an async function
@@ -411,53 +417,56 @@ app.component('visualizer', {
         //Media stream source
         var mss = c.createMediaStreamSource(stream);
 
-        const canvas = document.getElementById("freq");
-        ctx = canvas.getContext("2d");
+        this.canvas = document.getElementById("freq");
+        ctx = this.canvas.getContext("2d");
 
-        var analyser = c.createAnalyser();
-        analyser.fftSize = 1024;
-        analyser.smoothingTimeConstant = 0.95;
+        this.analyser = c.createAnalyser();
+        this.analyser.fftSize = 1024;
+        this.analyser.smoothingTimeConstant = 0.95;
 
-        mss.connect(analyser)
+        mss.connect(this.analyser)
 
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Float32Array(bufferLength);
+        this.bufferLength = this.analyser.frequencyBinCount;
+        this.dataArray = new Float32Array(this.bufferLength);
         // Calculate frequency bin range
-        bin_range = c.sampleRate/analyser.fftSize
+        this.bin_range = c.sampleRate/this.analyser.fftSize
 
-        function draw() {
-            //Schedule next redraw
-            requestAnimationFrame(draw);
+        this.draw()
+
+    },
+    methods: {
+        draw() {
 
             //Get spectrum data
-            analyser.getFloatFrequencyData(dataArray);
+            this.analyser.getFloatFrequencyData(this.dataArray)
 
             //Get pitch
-            this.note = getPitch(dataArray)
+            this.note = this.getPitch(this.dataArray)
             if (this.note != null) {
                 console.log(this.note)
             }
 
             //Draw background
-            ctx.fillStyle = 'rgb(255, 255, 255)'; //white
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgb(255, 255, 255)' //white
+            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
 
             //Draw spectrum
-            const barWidth = (canvas.width / bufferLength) * 2.5;
+            const barWidth = (this.canvas.width / this.bufferLength) * 2.5
             let posX = 0;
-            for (let i = 0; i < bufferLength; i++) {
-              const barHeight = (dataArray[i] + 140) * 2;
-              ctx.fillStyle = 'rgb(0, 0, 0)';
-              ctx.fillRect(posX, canvas.height - barHeight / 2, barWidth, barHeight / 2);
-              posX += barWidth + 1;
+            for (let i = 0; i < this.bufferLength; i++) {
+              const barHeight = (this.dataArray[i] + 140) * 2
+              ctx.fillStyle = 'rgb(0, 0, 0)'
+              ctx.fillRect(posX, this.canvas.height - barHeight / 2, barWidth, barHeight / 2)
+              posX += barWidth + 1
             }
-        }
-
-        function getPitch(array) {
+            //Schedule next redraw
+            requestAnimationFrame(this.draw)
+        },
+        getPitch(array) {
            max = Math.max(...array)
            idx = array.indexOf(max)
-           freqMax = idx*bin_range
-           freqMin = freqMax - bin_range
+           freqMax = idx*this.bin_range
+           freqMin = freqMax - this.bin_range
            note = null
            for (i=0; i<12; i++) {
                for (k=0; k<5; k++) {
@@ -468,13 +477,10 @@ app.component('visualizer', {
            }
            return note
        }
-        draw()
-
-    },
-    methods: {
     },
     template: `
         <canvas id="freq"></canvas>
+        <button @click="this.$emit('sendAnswer', this.note)">Capture answer {{ note }}</button>
     `
 })
 
