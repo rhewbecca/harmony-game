@@ -24,13 +24,13 @@ const distances = [["ionian",    [2,2,1,2,2,2,1]],
                    ["locrian",   [2,1,2,2,2,1,2]]]
 
 const c = new AudioContext()
-var attack = 0.01;
-var release = 0.2;
 
 // Global functions:----------------------------------------------------------------------
 
 //Play note of shifted "notes" array (shifting based on first note of scale)
 function play(note, fundamental) {
+    const attack = 0.01;
+    const release = 0.2;
     i = shiftArray(fundamental).indexOf(note)
     const o = c.createOscillator();
     const g = c.createGain();
@@ -46,7 +46,7 @@ function play(note, fundamental) {
 }
 
 function playScale() {
-    //IIFE Immediately invoked function expression
+    //Using IIFE Immediately invoked function expression
     for (i=0; i<7; i++){
         (function(val) {
             setTimeout(function () {play(scale[val], scale[0])}, 270*val)
@@ -56,7 +56,7 @@ function playScale() {
 
 // Intended for shifting "notes" array
 function shiftArray(index) {
-    // to shift "notes" array
+    // Index must be a string
     if (isNaN(index)) {
         toShift = [...notes]
         f = toShift.indexOf(index)
@@ -66,14 +66,6 @@ function shiftArray(index) {
         }
         shifted = toShift
     }
-    //to shift any array
-    // else {
-    //     for (i=0; i<index; i++) {
-    //         toShift.push(toShift[i])
-    //     }
-    // shifted = toShift.splice(index, toShift.length)
-    // }
-
     return shifted
 }
 
@@ -373,16 +365,27 @@ app.component('Reorder Notes', {
         swap(el) {
             if (this.clicked == true){
                 this.secondNote = el
+                document.getElementById(this.secondNote).style.backgroundColor = "yellow"
                 a = this.generatedScale.indexOf(this.firstNote)
                 b = this.generatedScale.indexOf(this.secondNote)
                 this.generatedScale[a] = this.secondNote
                 this.generatedScale[b] = this.firstNote
                 this.clicked = false
                 this.moves += 1
+                clear(this.firstNote, this.secondNote)
                 this.checkAnswer()
             } else {
                 this.clicked = true
                 this.firstNote = el
+                document.getElementById(this.firstNote).style.backgroundColor = "yellow"
+            }
+
+            function clear(firstNote,secondNote) {
+                setTimeout(function(){
+                    document.getElementById(firstNote).style.backgroundColor = null;
+                    document.getElementById(secondNote).style.backgroundColor = null;
+                }, 400)
+
             }
         }
     },
