@@ -35,6 +35,7 @@ button{
 }
 button:hover{
     border-color: rgb(20, 11, 11);
+    cursor: pointer;
 }
 button:active {
     background-color: #e0f376;
