@@ -106,37 +106,12 @@ app.component('mainmenu', {
         return{
             currentPage: null,
             games: ['Guess Note', 'Guess Scale', 'Reorder Notes', 'darkmode'],
-            score: 0,
-            leaderboard: true,
-            scoreList: [3,5,6]
-        }
-    },
-    methods: {
-        sendScore(){
-            db.collection("guessNote").add({"name": document.getElementById("name").value, "score": this.score})
-            document.getElementById("name").value = null
-            this.score = null
-        },
-        updateMain(e){
-            this.score = e
-            //console.log(this.score)
         }
     },
     template: `
         <h1> GAMES: <button v-for='game in games' @click="currentPage = game">{{ game }}</button></h1>
         <div id="game">
-            <div v-if="score">
-                Name:<input type="text" id="name">
-                Score: {{ score }}
-                <button @click="sendScore">Send</button>
-                <div id="leaderboard" v-if="leaderboard">
-                    Leader Board
-                    <ol>
-                        <li v-for="item in scoreList">{{ item }}</li>
-                    </ol>
-                </div>
-            </div>
-            <component :is='currentPage' @sendScore="updateMain"/>
+            <component :is='currentPage' />
         </div>
     `
 })
@@ -156,10 +131,22 @@ app.component('Guess Note', {
 
             checked: false,
             checked2: false,
-            hint: false
+            hint: false,
+
+            leaderboard: false,
+            scoreList: []
         }
     },
-    emits: ['sendScore'],
+    mounted(){
+        db.collection("guessNote").orderBy("score", "desc").onSnapshot((snapshot) => {
+            const data = snapshot.docs.map((doc) => ({
+                ...doc.data(),
+            }))
+            for (i=0; i<data.length; i++){
+                this.scoreList[i] = data[i].name + " " + data[i].score
+            }
+        })
+    },
     methods: {
         generateScale() {
             this.questionsNumberDone +=1
@@ -218,22 +205,27 @@ app.component('Guess Note', {
             // All questions completed
             if(this.questionsNumberDone == this.questionsNumberTot){
                 alert("Total score: " + this.score + "/" + this.questionsNumberTot)
+                name = prompt("Enter nickname: ")
+                db.collection("guessNote").add({"name": name, "score": this.score})
                 this.started = false
-                this.$emit('sendScore', this.score)
+                this.leaderboard = true
             }
 
             // Wait before next scale
-            setTimeout(this.generateScale, 1500)
+            setTimeout(this.generateScale, 1800)
         },
         resetGame() {
             this.score = 0
             this.questionsNumberDone = 0
-            this.$emit('sendScore', null)
-        },
+            this.leaderboard = false
+        }
     },
     template: `
         <div>
-            <h2><button @click="started=true; resetGame(); generateScale()">New game</button></h2>
+            <h2>
+            <button @click="started=true; resetGame(); generateScale()">New game</button>
+            <button @click="leaderboard=true">Leaderboard</button>
+            </h2>
             <h3><div v-if="started==true"> Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></h3>
         </div>
         <div v-if="started">
@@ -247,6 +239,14 @@ app.component('Guess Note', {
               <input type="checkbox" v-model="checked2">Use keyboard
             </div>
         </div>
+
+        <div id="leaderboard" v-if="leaderboard">
+            Leader Board:
+            <ol>
+            <li v-for="item in scoreList">{{ item }}</li>
+            </ol>
+        </div>
+
         <visualizer v-if="checked" @sendAnswer=checkAnswer></visualizer>
         <div><PianoKeyboard v-if="checked2" @sendKey=checkAnswer></PianoKeyboard></div>
     `
@@ -263,8 +263,21 @@ app.component('Guess Scale', {
             started: false,
             score: 0,
             questionsNumberTot: 10,
-            questionsNumberDone: 0
+            questionsNumberDone: 0,
+
+            leaderboard: false,
+            scoreList: []
         }
+    },
+    mounted(){
+        db.collection("guessScale").orderBy("score", "desc").onSnapshot((snapshot) => {
+            const data = snapshot.docs.map((doc) => ({
+                ...doc.data(),
+            }))
+            for (i=0; i<data.length; i++){
+                this.scoreList[i] = data[i].name + " " + data[i].score
+            }
+        })
     },
     methods: {
         generateScale() {
@@ -320,20 +333,27 @@ app.component('Guess Scale', {
             // All questions completed
             if(this.questionsNumberDone == this.questionsNumberTot){
                 alert("Total score: " + this.score + "/" + this.questionsNumberTot)
+                name = prompt("Enter nickname: ")
+                db.collection("guessScale").add({"name": name, "score": this.score})
                 this.started = false
+                this.leaderboard = true
             }
 
             // Wait before next scale
-            setTimeout(this.generateScale, 1500)
+            setTimeout(this.generateScale, 1800)
         },
         resetGame() {
             this.score = 0
             this.questionsNumberDone = 0
+            this.leaderboard = false
         }
     },
     template: `
         <div>
-            <h2><button @click="started=true; resetGame(); generateScale()">New game</button></h2>
+            <h2>
+            <button @click="started=true; resetGame(); generateScale()">New game</button>
+            <button @click="leaderboard=true">Leaderboard</button>
+            </h2>
             <h3><div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></h3>
         </div>
         <div v-if="started">
@@ -341,6 +361,13 @@ app.component('Guess Scale', {
             <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button></h4>
             <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
             <button onclick="playScale()">Listen scale</button>
+        </div>
+
+        <div id="leaderboard" v-if="leaderboard">
+            Leader Board:
+            <ol>
+            <li v-for="item in scoreList">{{ item }}</li>
+            </ol>
         </div>
     `
 })
@@ -359,8 +386,21 @@ app.component('Reorder Notes', {
             firstNote: null,
             secondNote: null,
             moves: 0,
-            hint: false
+            hint: false,
+
+            leaderboard: false,
+            scoreList: []
         }
+    },
+    mounted(){
+        db.collection("reorderNotes").orderBy("moves", "asc").onSnapshot((snapshot) => {
+            const data = snapshot.docs.map((doc) => ({
+                ...doc.data(),
+            }))
+            for (i=0; i<data.length; i++){
+                this.scoreList[i] = data[i].name + " " + data[i].moves
+            }
+        })
     },
     methods: {
         generateScale() {
@@ -396,16 +436,20 @@ app.component('Reorder Notes', {
                 // All questions completed
                 if(this.questionsNumberDone == this.questionsNumberTot){
                     alert("Total score: " + this.score + "/" + this.questionsNumberTot)
+                    name = prompt("Enter nickname: ")
+                    db.collection("reorderNotes").add({"name": name, "moves": this.score})
                     this.started = false
+                    this.leaderboard = true
                 }
                 // Wait before next scale
-                setTimeout(this.generateScale, 1500)
+                setTimeout(this.generateScale, 1800)
             }
         },
         resetGame() {
             this.score = 0
             this.questionsNumberDone = 0
             this.moves = 0
+            this.leaderboard = false
         },
         swap(el) {
             if (this.clicked == true){
@@ -436,7 +480,10 @@ app.component('Reorder Notes', {
     },
     template: `
     <div>
-        <h2><button @click="started=true; resetGame(); generateScale()">New game</button></h2>
+        <h2>
+        <button @click="started=true; resetGame(); generateScale()">New game</button>
+        <button @click="leaderboard=true">Leaderboard</button>
+        </h2>
         <div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div>
         <div v-if="started==true">Moves: {{ moves }}</div>
     </div>
@@ -445,6 +492,13 @@ app.component('Reorder Notes', {
         <button onclick="playScale()">Listen scale</button>
         <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
         <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button>
+    </div>
+
+    <div id="leaderboard" v-if="leaderboard">
+        Leader Board:
+        <ol>
+        <li v-for="item in scoreList">{{ item }}</li>
+        </ol>
     </div>
     `
 })
@@ -578,7 +632,7 @@ app.component('visualizer', {
 app.component('darkmode', {
     data(){
         return{
-            
+
         }
     },
     methods: {
