@@ -241,6 +241,7 @@ app.component('Guess Note', {
             <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
             <button onclick="playScale()">Listen scale</button>
             <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button></h4>
+            <div><PianoKeyboard></PianoKeyboard></div>
             <div><input type="checkbox" v-model="checked">Use mic</div>
         </div>
         <visualizer v-if="checked" @sendAnswer=checkAnswer></visualizer>
@@ -336,6 +337,7 @@ app.component('Guess Scale', {
             <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button></h4>
             <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
             <button onclick="playScale()">Listen scale</button>
+            <div><PianoKeyboard></PianoKeyboard></div>
         </div>
     `
 })
@@ -436,11 +438,44 @@ app.component('Reorder Notes', {
         <div v-if="started==true">Moves: {{ moves }}</div>
     </div>
     <div v-if="started">
-        <h3><div class="draggable" v-for="note in generatedScale" v-bind:id="note" @click="swap(note)">{{ note }}</div></h3>
+        <div class="draggable" v-for="note in generatedScale" v-bind:id="note" @click="swap(note)">{{ note }}</div>
         <button onclick="playScale()">Listen scale</button>
         <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
         <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button>
+        <div><PianoKeyboard></PianoKeyboard></div>
     </div>
+    `
+})
+
+app.component('PianoKeyboard', {
+    data(){
+        return{
+            
+        }
+    },
+    methods: {
+        
+    },
+    template: `
+        <ul id="keyboard">
+        <li note="C" class="white">C</li>
+        <li note="C#" class="black">C#</li>
+        <li note="D" class="white offset">D</li>
+        <li note="D#" class="black">D#</li>
+        <li note="E" class="white offset">E</li>
+        <li note="F" class="white">F</li>
+        <li note="F#" class="black">F#</li>
+        <li note="G" class="white offset">G</li>
+        <li note="G#" class="black">G#</li>
+        <li note="A" class="white offset">A</li>
+        <li note="A#" class="black">A#</li>
+        <li note="B" class="white offset">B</li>
+        <li note="C2" class="white">C2</li>
+        <li note="C#2" class="black">C#2</li>
+        <li note="D2" class="white offset">D2</li>
+        <li note="D#2" class="black">D#2</li>
+        <li note="E2" class="white offset">E2</li>
+    </ul>
     `
 })
 
