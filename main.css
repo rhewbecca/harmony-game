@@ -16,8 +16,15 @@
     box-sizing: border-box;
 }
 
-body{
-    background-image: linear-gradient(to right, rgba(245, 227, 227, 0.856) , rgb(235, 235, 194))
+body {
+    padding: 25px;
+    background-image: linear-gradient(to right, rgba(245, 227, 227, 0.856) , rgb(235, 235, 194));
+    color: black;
+    font-size: 20px;
+} 
+.dark-mode {
+    background-image: linear-gradient(to right, rgb(10, 28, 61) , rgb(11, 35, 49));
+    color: white;
 }
 
 button{
