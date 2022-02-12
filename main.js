@@ -23,6 +23,19 @@ const distances = [["ionian",    [2,2,1,2,2,2,1]],
                    ["aeolian",   [1,2,2,2,1,2,2]],
                    ["locrian",   [2,1,2,2,2,1,2]]]
 
+const firebaseConfig = {
+    apiKey: "AIzaSyCbrwtBDz-tE3io_qU-TazOuCsWdzDafBg",
+    authDomain: "rhapsodizer-703a1.firebaseapp.com",
+    projectId: "rhapsodizer-703a1",
+    storageBucket: "rhapsodizer-703a1.appspot.com",
+    messagingSenderId: "499657467111",
+    appId: "1:499657467111:web:9ed371301b9e160def2e42"
+}
+//Initalize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+//Initialize Audio
 const c = new AudioContext()
 
 // Global functions:----------------------------------------------------------------------
@@ -92,14 +105,38 @@ app.component('mainmenu', {
     data() {
         return{
             currentPage: null,
-            games: ['Guess Note', 'Guess Scale', 'Reorder Notes']
+            games: ['Guess Note', 'Guess Scale', 'Reorder Notes'],
+            score: 0,
+            leaderboard: true,
+            scoreList: [3,5,6]
+        }
+    },
+    methods: {
+        sendScore(){
+            db.collection("guessNote").add({"name": document.getElementById("name").value, "score": this.score})
+            document.getElementById("name").value = null
+            this.score = null
+        },
+        updateMain(e){
+            this.score = e
+            console.log(this.score)
         }
     },
     template: `
-        <div id="taskbar"></div>
         <h1> GAMES: <button v-for='game in games' @click="currentPage = game">{{ game }}</button></h1>
         <div id="game">
-            <component :is='currentPage' />
+            <div v-if="score">
+                Name:<input type="text" id="name">
+                Score: {{ score }}
+                <button @click="sendScore">Send</button>
+                <div id="leaderboard" v-if="leaderboard">
+                    Leader Board
+                    <ol>
+                        <li v-for="item in scoreList">{{ item }}</li>
+                    </ol>
+                </div>
+            </div>
+            <component :is='currentPage' @sendScore="updateMain"/>
         </div>
     `
 })
@@ -121,6 +158,7 @@ app.component('Guess Note', {
             hint: false
         }
     },
+    emits: ['sendScore'],
     methods: {
         generateScale() {
             this.questionsNumberDone +=1
@@ -180,6 +218,7 @@ app.component('Guess Note', {
             if(this.questionsNumberDone == this.questionsNumberTot){
                 alert("Total score: " + this.score + "/" + this.questionsNumberTot)
                 this.started = false
+                this.$emit('sendScore', this.score)
             }
 
             // Wait before next scale
@@ -188,6 +227,7 @@ app.component('Guess Note', {
         resetGame() {
             this.score = 0
             this.questionsNumberDone = 0
+            this.$emit('sendScore', null)
         },
     },
     template: `
@@ -201,6 +241,7 @@ app.component('Guess Note', {
             <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
             <button onclick="playScale()">Listen scale</button>
             <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button></h4>
+            <div><PianoKeyboard></PianoKeyboard></div>
             <div><input type="checkbox" v-model="checked">Use mic</div>
         </div>
         <visualizer v-if="checked" @sendAnswer=checkAnswer></visualizer>
@@ -296,6 +337,7 @@ app.component('Guess Scale', {
             <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button></h4>
             <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
             <button onclick="playScale()">Listen scale</button>
+            <div><PianoKeyboard></PianoKeyboard></div>
         </div>
     `
 })
@@ -396,11 +438,44 @@ app.component('Reorder Notes', {
         <div v-if="started==true">Moves: {{ moves }}</div>
     </div>
     <div v-if="started">
-        <h3><div class="draggable" v-for="note in generatedScale" v-bind:id="note" @click="swap(note)">{{ note }}</div></h3>
+        <div class="draggable" v-for="note in generatedScale" v-bind:id="note" @click="swap(note)">{{ note }}</div>
         <button onclick="playScale()">Listen scale</button>
         <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
         <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button>
+        <div><PianoKeyboard></PianoKeyboard></div>
     </div>
+    `
+})
+
+app.component('PianoKeyboard', {
+    data(){
+        return{
+            
+        }
+    },
+    methods: {
+        
+    },
+    template: `
+        <ul id="keyboard">
+        <li note="C" class="white">C</li>
+        <li note="C#" class="black">C#</li>
+        <li note="D" class="white offset">D</li>
+        <li note="D#" class="black">D#</li>
+        <li note="E" class="white offset">E</li>
+        <li note="F" class="white">F</li>
+        <li note="F#" class="black">F#</li>
+        <li note="G" class="white offset">G</li>
+        <li note="G#" class="black">G#</li>
+        <li note="A" class="white offset">A</li>
+        <li note="A#" class="black">A#</li>
+        <li note="B" class="white offset">B</li>
+        <li note="C2" class="white">C2</li>
+        <li note="C#2" class="black">C#2</li>
+        <li note="D2" class="white offset">D2</li>
+        <li note="D#2" class="black">D#2</li>
+        <li note="E2" class="white offset">E2</li>
+    </ul>
     `
 })
 
