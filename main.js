@@ -23,6 +23,19 @@ const distances = [["ionian",    [2,2,1,2,2,2,1]],
                    ["aeolian",   [1,2,2,2,1,2,2]],
                    ["locrian",   [2,1,2,2,2,1,2]]]
 
+const firebaseConfig = {
+    apiKey: "AIzaSyCbrwtBDz-tE3io_qU-TazOuCsWdzDafBg",
+    authDomain: "rhapsodizer-703a1.firebaseapp.com",
+    projectId: "rhapsodizer-703a1",
+    storageBucket: "rhapsodizer-703a1.appspot.com",
+    messagingSenderId: "499657467111",
+    appId: "1:499657467111:web:9ed371301b9e160def2e42"
+}
+//Initalize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+//Initialize Audio
 const c = new AudioContext()
 
 // Global functions:----------------------------------------------------------------------
@@ -92,14 +105,38 @@ app.component('mainmenu', {
     data() {
         return{
             currentPage: null,
-            games: ['Guess Note', 'Guess Scale', 'Reorder Notes']
+            games: ['Guess Note', 'Guess Scale', 'Reorder Notes'],
+            score: 0,
+            leaderboard: true,
+            scoreList: [3,5,6]
+        }
+    },
+    methods: {
+        sendScore(){
+            db.collection("guessNote").add({"name": document.getElementById("name").value, "score": this.score})
+            document.getElementById("name").value = null
+            this.score = null
+        },
+        updateMain(e){
+            this.score = e
+            console.log(this.score)
         }
     },
     template: `
-        <div id="taskbar"></div>
         <h1> GAMES: <button v-for='game in games' @click="currentPage = game">{{ game }}</button></h1>
         <div id="game">
-            <component :is='currentPage' />
+            <div v-if="score">
+                Name:<input type="text" id="name">
+                Score: {{ score }}
+                <button @click="sendScore">Send</button>
+                <div id="leaderboard" v-if="leaderboard">
+                    Leader Board
+                    <ol>
+                        <li v-for="item in scoreList">{{ item }}</li>
+                    </ol>
+                </div>
+            </div>
+            <component :is='currentPage' @sendScore="updateMain"/>
         </div>
     `
 })
@@ -121,6 +158,7 @@ app.component('Guess Note', {
             hint: false
         }
     },
+    emits: ['sendScore'],
     methods: {
         generateScale() {
             this.questionsNumberDone +=1
@@ -180,6 +218,7 @@ app.component('Guess Note', {
             if(this.questionsNumberDone == this.questionsNumberTot){
                 alert("Total score: " + this.score + "/" + this.questionsNumberTot)
                 this.started = false
+                this.$emit('sendScore', this.score)
             }
 
             // Wait before next scale
@@ -188,6 +227,7 @@ app.component('Guess Note', {
         resetGame() {
             this.score = 0
             this.questionsNumberDone = 0
+            this.$emit('sendScore', null)
         },
     },
     template: `
