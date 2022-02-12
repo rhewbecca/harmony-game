@@ -105,7 +105,7 @@ app.component('mainmenu', {
     data() {
         return{
             currentPage: null,
-            games: ['Guess Note', 'Guess Scale', 'Reorder Notes'],
+            games: ['Guess Note', 'Guess Scale', 'Reorder Notes', 'darkmode'],
             score: 0,
             leaderboard: true,
             scoreList: [3,5,6]
@@ -572,6 +572,23 @@ app.component('visualizer', {
     template: `
         <canvas id="freq"></canvas>
         <button @click="this.$emit('sendAnswer', this.note)">Capture answer {{ note }}</button>
+    `
+})
+
+app.component('darkmode', {
+    data(){
+        return{
+            
+        }
+    },
+    methods: {
+        darkmode(){
+            document.body.classList.toggle("dark-mode");
+        }
+    },
+    template: `
+        <p>Click the button to toggle between dark and light mode for this page.</p>
+        <button @click="darkmode()">Toggle dark mode</button>
     `
 })
 
