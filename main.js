@@ -113,6 +113,11 @@ app.component('mainmenu', {
         switchTheme() {
             var element = document.body;
             element.classList.toggle("dark-mode");
+            if (this.theme == "dark mode"){
+                this.theme = "ligth mode"
+            } else {
+                this.theme = "dark mode"
+            }
         }
     },
     template: `
@@ -485,7 +490,7 @@ app.component('Reorder Notes', {
         swap(el) {
             if (this.clicked == true){
                 this.secondNote = el
-                document.getElementById(this.secondNote).style.backgroundColor = "green"
+                document.getElementById(this.secondNote).style.backgroundColor = "yellow"
                 a = this.generatedScale.indexOf(this.firstNote)
                 b = this.generatedScale.indexOf(this.secondNote)
                 this.generatedScale[a] = this.secondNote
@@ -497,7 +502,7 @@ app.component('Reorder Notes', {
             } else {
                 this.clicked = true
                 this.firstNote = el
-                document.getElementById(this.firstNote).style.backgroundColor = "green"
+                document.getElementById(this.firstNote).style.backgroundColor = "yellow"
             }
 
             function clear(firstNote,secondNote) {
@@ -666,13 +671,6 @@ app.component('visualizer', {
     template: `
         <canvas id="freq"></canvas>
         <button @click="this.$emit('sendAnswer', this.note)">Capture answer {{ note }}</button>
-    `
-})
-
-app.component('darkmode', {
-    template: `
-        <p>Click the button to toggle between dark and light mode for this page.</p>
-        <button @click="switchTheme()">Toggle dark mode</button>
     `
 })
 
