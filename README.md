@@ -36,12 +36,16 @@ If you want to run this app without an internet connection you need to change Vu
 
 # Features
 
-<ul>
-<li><b>MODULARITY:</b> VueJs framework allows you to extend the application with new games, new input methods, new widgets and functions.</li>
-<li><b>HARMONY:</b> The content of the games concerns the harmonic part of music, in particular the recognition of notes and scales. This can be extended to other aspects.</li>
-<li><b>INPUT METHODS:</b> The game "Guess Note" allows you to choose different input methods to give answers: a traditional four-guesses template, a little beautiful keyboard and even a microphone!</li>
-<li><b>PITCH RECOGNITION:</b> If you choose your mic as input method you can see a real-time frequency spectrogram</li>
-</ul>
+[(Back to top)](#table-of-contents)
+
+## MODULARITY:
+VueJs framework allows you to extend the application with new games, new input methods, new widgets and functions.
+## HARMONY:
+The content of the games concerns the harmonic part of music, in particular the recognition of notes and scales. This can be extended to other aspects.
+## INPUT METHODS:
+The game "Guess Note" allows you to choose different input methods to give answers: a traditional four-guesses template, a little beautiful keyboard and even a microphone!
+## PITCH RECOGNITION:
+If you choose your mic as input method you can see a real-time frequency spectrogram
 
 
 # Custom configurations
@@ -51,9 +55,9 @@ If you want to run this app without an internet connection you need to change Vu
 You can overwrite the existing icons and colors mapping by copying the yaml files from `$(dirname $(gem which colorls))/yaml` into `~/.config/colorls`, and changing them.
 
 - To use different firebase script reference:
-   
+
   This app uses `Firebase 8.0.0`. You can use a different version by changing following line in `index.html`:
-   
+
   ```
   <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase.js"></script>
   ```
@@ -72,21 +76,35 @@ You can overwrite the existing icons and colors mapping by copying the yaml file
     appId: "1:499657467111:web:9ed371301b9e160def2e42"
    }
   ```
- 
- - To use your own firebase database :
+
+ - To use local VueJS installation :
+
+ This app uses `Vue 3`. Using Vue 2 will break the app. You can use a different path by changing following line inside `index.html`:
+
+ ```
+ <script src="https://unpkg.com/vue@next"></script>
+ ```    
 
 # Contributing
 
 [(Back to top)](#table-of-contents)
 
-Your contributions are always welcome! Please have a look at the [contribution guidelines](CONTRIBUTING.md) first. :tada:
 
 # License
 
 [(Back to top)](#table-of-contents)
 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,!
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF!
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.!
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY!
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,!
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE!
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-The MIT License (MIT) 2017 - [Athitya Kumar](https://github.com/athityakumar/). Please have a look at the [LICENSE.md](LICENSE.md) for more details.
+2022 - [Rhapsodizer](https://github.com/Rhapsodizer/) and [rhewbecca](https://github.com/rhewbecca/)
+
+Contact us for more informations
 
 
 
@@ -102,7 +120,7 @@ It's a simple VueJS application containing some games concerning music.
 <p><h1> Features </h1></p>
 
 <ul>
-<li><b>MODULARITY:</b> VueJs framework allows you to extend the application with new games, new input methods, new widgets and functions 
+<li><b>MODULARITY:</b> VueJs framework allows you to extend the application with new games, new input methods, new widgets and functions
 <li><b>HARMONY:</b> The content of the games concerns the harmonic part of music, in particular the recognition of notes and scales.This can be extended to other aspects
 <li><b>AUDIO:</b> The WebAudio API are used extensively and a microphone can be used as input device
 </ul>
