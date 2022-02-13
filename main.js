@@ -248,13 +248,16 @@ app.component('Guess Note', {
         <p><div v-if="started==true"> Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></p>
         <div v-if="started">
             <div class="draggable" v-for="note in generatedScale">{{ note }}</div>
-            <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button>
-            <div><button onclick="playScale()">Listen scale</button>
-            <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button></h4>
-            <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button></div>
+            <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button></h4>
             <div>
-            <input type="checkbox" v-model="checked">Use mic
-            <input type="checkbox" v-model="checked2">Use keyboard
+                <h4>
+                <button onclick="playScale()">Listen scale</button>
+                <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button></h4>
+            </div>
+            <div><button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button></div>
+            <div>
+                <input type="checkbox" v-model="checked">Use mic
+                <input type="checkbox" v-model="checked2">Use keyboard
             </div>
         </div>
         <visualizer v-if="checked" @sendAnswer=checkAnswer></visualizer>
