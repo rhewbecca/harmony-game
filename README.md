@@ -15,7 +15,6 @@ It's a simple VueJS application containing some games concerning music.
 - [Installation](#installation)
 - [Features](#features)
 - [Structure](#structure)
-- [Notable functions](#notable-functions)
 - [Custom configurations](#custom-configurations)
 - [License](#license)
 
@@ -81,9 +80,21 @@ main.js, index.html, main.css
    |---- ...
 </pre>
 
-# Notable functions
+### Components
 
 [(Back to top)](#table-of-contents)
+
+- `mainmenu` : It's the main component of the application, directly loaded inside the main app in `index.html`. It's the main parent and works as a container for every loaded game
+
+- `Guess Note` : 1st game. The goal is to guess the missing note from a list of seven, which represent a full scale. To help the user there is a "hint" button which shows the name of the specific scale.
+
+Microphone or an onscreen keyboard can also be chosen as the input method.
+
+### Functions
+
+[(Back to top)](#table-of-contents)
+
+### Global functions
 
 # Custom configurations
 
