@@ -23,6 +23,21 @@ const distances = [["ionian",    [2,2,1,2,2,2,1]],
                    ["aeolian",   [1,2,2,2,1,2,2]],
                    ["locrian",   [2,1,2,2,2,1,2]]]
 
+const midiNotes = [
+    [9, 21, 33, 45, 57, 69, 81, 93, 105, 117],
+    [10, 22, 34, 46, 58, 70, 82, 94, 106, 118],
+    [11, 23, 35, 47, 59, 71, 83, 95, 107, 119],
+    [0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120],
+    [1, 13, 25, 37, 49, 61, 73, 85, 97, 109, 121],
+    [2, 14, 26, 38, 50, 62, 74, 86, 98, 110, 122],
+    [3, 15, 27, 39, 51, 63, 75, 87, 99, 111, 123],
+    [4, 16, 28, 40, 52, 64, 76, 88, 100, 112, 124],
+    [5, 17, 29, 41, 53, 65, 77, 89, 101, 113, 125],
+    [6, 18, 30, 42, 54, 66, 78, 90, 102, 114, 126],
+    [7, 19, 31, 43, 55, 67, 79, 91, 103, 115, 127],
+    [8, 20, 32, 44, 56, 68, 80, 92, 104, 116]
+]
+
 const firebaseConfig = {
     apiKey: "AIzaSyCbrwtBDz-tE3io_qU-TazOuCsWdzDafBg",
     authDomain: "rhapsodizer-703a1.firebaseapp.com",
@@ -144,6 +159,7 @@ app.component('Guess Note', {
 
             checked: false,
             checked2: false,
+            checked3: false,
             hint: false,
 
             leaderboard: false,
@@ -258,9 +274,11 @@ app.component('Guess Note', {
             <div>
                 <input type="checkbox" v-model="checked">Use mic
                 <input type="checkbox" v-model="checked2">Use keyboard
+                <input type="checkbox" v-model="checked3">Use MIDI
             </div>
         </div>
         <visualizer v-if="checked" @sendAnswer=checkAnswer></visualizer>
+        <midiInput v-if="checked3" @sendMIDI=checkAnswer></midiInput>
         <div><PianoKeyboard v-if="checked2" @sendKey=checkAnswer></PianoKeyboard></div>
 
         <div id="leaderboard" v-if="leaderboard">
@@ -560,7 +578,7 @@ app.component('PianoKeyboard', {
           note: null
         }
     },
-    emmits: ['sendKey'],
+    emits: ['sendKey'],
     methods: {
       keyPressed(e){
         notePressed = e.target.innerText
@@ -678,6 +696,50 @@ app.component('visualizer', {
         <canvas id="freq"></canvas>
         <button @click="this.$emit('sendAnswer', this.note)">Capture answer {{ note }}</button>
     `
+})
+
+app.component('midiInput', {
+    data(){
+        return{
+            midiNote: null,
+            pitch: null
+        }
+    },
+    emits: ['sendMIDI'],
+    async mounted() {
+        if (navigator.requestMIDIAccess) {
+            console.log('This browser supports WebMIDI!')
+        } else {
+            console.log('WebMIDI is not supported in this browser.')
+        }
+
+        navigator.requestMIDIAccess().then(this.onMIDISuccess, this.onMIDIFailure)
+
+    },
+    methods: {
+        onMIDISuccess(midiAccess) {
+            for (var input of midiAccess.inputs.values()){
+                input.onmidimessage = this.getMIDIMessage
+            }
+        },
+        onMIDIFailure() {
+            console.log('Could not access your MIDI devices.');
+        },
+        getMIDIMessage(message) {
+            if (message.data[0] == 144){
+                this.midiNote = message.data[1]
+            } else if (message.data[0] == 128) {
+                for (i=0; i<12; i++){
+                    if (midiNotes[i].includes(this.midiNote)){
+                        this.pitch = notes[i]
+                        console.log(this.pitch)
+                        this.$emit('sendMIDI', this.pitch)
+                        break
+                    }
+                }
+            }
+        }
+    }
 })
 
 
