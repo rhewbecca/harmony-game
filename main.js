@@ -106,22 +106,10 @@ app.component('mainmenu', {
         return{
             currentPage: null,
             games: ['Guess Note', 'Guess Scale', 'Reorder Notes'],
-            score: 0,
-            leaderboard: true,
-            scoreList: [3,5,6],
             theme: 'dark mode'
         }
     },
-    methods: {
-        sendScore(){
-            db.collection("guessNote").add({"name": document.getElementById("name").value, "score": this.score})
-            document.getElementById("name").value = null
-            this.score = null
-        },
-        updateMain(e){
-            this.score = e
-            console.log(this.score)
-        },
+    methods:{
         switchTheme() {
             var element = document.body;
             element.classList.toggle("dark-mode");
@@ -130,18 +118,7 @@ app.component('mainmenu', {
     template: `
         <h1> GAMES: <button v-for='game in games' @click="currentPage = game">{{ game }}</button></h1>
         <div id="game">
-            <div v-if="score">
-                Name:<input type="text" id="name">
-                Score: {{ score }}
-                <button @click="sendScore">Send</button>
-                <div id="leaderboard" v-if="leaderboard">
-                    Leader Board
-                    <ol>
-                        <li v-for="item in scoreList">{{ item }}</li>
-                    </ol>
-                </div>
-            </div>
-            <component :is='currentPage' @sendScore="updateMain"/>
+            <component :is='currentPage' />
         </div>
         <div><h3><button @click="switchTheme">{{ theme }}</button></h3></div>
     `
@@ -161,10 +138,25 @@ app.component('Guess Note', {
             questionsNumberDone: 0,
 
             checked: false,
-            hint: false
+            checked2: false,
+            hint: false,
+
+            leaderboard: false,
+            nameList: [],
+            scoreList: []
         }
     },
-    emits: ['sendScore'],
+    mounted(){
+        db.collection("guessNote").orderBy("score", "desc").onSnapshot((snapshot) => {
+            const data = snapshot.docs.map((doc) => ({
+                ...doc.data(),
+            }))
+            for (i=0; i<data.length; i++){
+                this.nameList[i] = data[i].name
+                this.scoreList[i] = data[i].score
+            }
+        })
+    },
     methods: {
         generateScale() {
             this.questionsNumberDone +=1
@@ -223,18 +215,27 @@ app.component('Guess Note', {
             // All questions completed
             if(this.questionsNumberDone == this.questionsNumberTot){
                 alert("Total score: " + this.score + "/" + this.questionsNumberTot)
+                name = prompt("Enter nickname: ")
+                db.collection("guessNote").add({"name": name, "score": this.score})
                 this.started = false
-                this.$emit('sendScore', this.score)
+                this.leaderboard = true
             }
 
             // Wait before next scale
-            setTimeout(this.generateScale, 1500)
+            setTimeout(this.generateScale, 1800)
         },
         resetGame() {
             this.score = 0
             this.questionsNumberDone = 0
-            this.$emit('sendScore', null)
+            this.leaderboard = false
         },
+        showLeaderBoard(){
+            if(this.leaderboard == true){
+                this.leaderboard = false
+            }else{
+                this.leaderboard = true
+            }
+        }
     },
     template: `
         <h2><button @click="started=true; resetGame(); generateScale()">New game</button></h2>
@@ -252,6 +253,20 @@ app.component('Guess Note', {
         </div>
         <visualizer v-if="checked" @sendAnswer=checkAnswer></visualizer>
         <div><PianoKeyboard v-if="checked2" @sendKey=checkAnswer></PianoKeyboard></div>
+
+        <div id="leaderboard" v-if="leaderboard">
+            Leader Board:
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Score</th>
+                </tr>
+                <tr>
+                    <td><ol><li v-for="item in nameList">{{ item }}</li></ol></td>
+                    <td><ul><li v-for="item in scoreList">{{ item }}</li></ul></td>
+                </tr>
+            </table>
+        </div>
     `
 })
 
@@ -266,8 +281,23 @@ app.component('Guess Scale', {
             started: false,
             score: 0,
             questionsNumberTot: 10,
-            questionsNumberDone: 0
+            questionsNumberDone: 0,
+
+            leaderboard: false,
+            nameList: [],
+            scoreList: []
         }
+    },
+    mounted(){
+        db.collection("guessScale").orderBy("score", "desc").onSnapshot((snapshot) => {
+            const data = snapshot.docs.map((doc) => ({
+                ...doc.data(),
+            }))
+            for (i=0; i<data.length; i++){
+                this.nameList[i] = data[i].name
+                this.scoreList[i] = data[i].score
+            }
+        })
     },
     methods: {
         generateScale() {
@@ -323,15 +353,26 @@ app.component('Guess Scale', {
             // All questions completed
             if(this.questionsNumberDone == this.questionsNumberTot){
                 alert("Total score: " + this.score + "/" + this.questionsNumberTot)
+                name = prompt("Enter nickname: ")
+                db.collection("guessScale").add({"name": name, "score": this.score})
                 this.started = false
+                this.leaderboard = true
             }
 
             // Wait before next scale
-            setTimeout(this.generateScale, 1500)
+            setTimeout(this.generateScale, 1800)
         },
         resetGame() {
             this.score = 0
             this.questionsNumberDone = 0
+            this.leaderboard = false
+        },
+        showLeaderBoard(){
+            if(this.leaderboard == true){
+                this.leaderboard = false
+            }else{
+                this.leaderboard = true
+            }
         }
     },
     template: `
@@ -342,6 +383,20 @@ app.component('Guess Scale', {
             <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button>
             <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
             <button onclick="playScale()">Listen scale</button></h4>
+        </div>
+
+        <div id="leaderboard" v-if="leaderboard">
+            Leader Board:
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Score</th>
+                </tr>
+                <tr>
+                    <td><ol><li v-for="item in nameList">{{ item }}</li></ol></td>
+                    <td><ul><li v-for="item in scoreList">{{ item }}</li></ul></td>
+                </tr>
+            </table>
         </div>
     `
 })
@@ -360,8 +415,23 @@ app.component('Reorder Notes', {
             firstNote: null,
             secondNote: null,
             moves: 0,
-            hint: false
+            hint: false,
+
+            leaderboard: false,
+            nameList: [],
+            scoreList: []
         }
+    },
+    mounted(){
+        db.collection("reorderNotes").orderBy("moves", "asc").onSnapshot((snapshot) => {
+            const data = snapshot.docs.map((doc) => ({
+                ...doc.data(),
+            }))
+            for (i=0; i<data.length; i++){
+                this.nameList[i] = data[i].name
+                this.scoreList[i] = data[i].moves
+            }
+        })
     },
     methods: {
         generateScale() {
@@ -397,21 +467,25 @@ app.component('Reorder Notes', {
                 // All questions completed
                 if(this.questionsNumberDone == this.questionsNumberTot){
                     alert("Total score: " + this.score + "/" + this.questionsNumberTot)
+                    name = prompt("Enter nickname: ")
+                    db.collection("reorderNotes").add({"name": name, "moves": this.score})
                     this.started = false
+                    this.leaderboard = true
                 }
                 // Wait before next scale
-                setTimeout(this.generateScale, 1500)
+                setTimeout(this.generateScale, 1800)
             }
         },
         resetGame() {
             this.score = 0
             this.questionsNumberDone = 0
             this.moves = 0
+            this.leaderboard = false
         },
         swap(el) {
             if (this.clicked == true){
                 this.secondNote = el
-                document.getElementById(this.secondNote).style.backgroundColor = "yellow"
+                document.getElementById(this.secondNote).style.backgroundColor = "green"
                 a = this.generatedScale.indexOf(this.firstNote)
                 b = this.generatedScale.indexOf(this.secondNote)
                 this.generatedScale[a] = this.secondNote
@@ -423,7 +497,7 @@ app.component('Reorder Notes', {
             } else {
                 this.clicked = true
                 this.firstNote = el
-                document.getElementById(this.firstNote).style.backgroundColor = "yellow"
+                document.getElementById(this.firstNote).style.backgroundColor = "green"
             }
 
             function clear(firstNote,secondNote) {
@@ -433,10 +507,17 @@ app.component('Reorder Notes', {
                 }, 400)
 
             }
+        },
+        showLeaderBoard(){
+            if(this.leaderboard == true){
+                this.leaderboard = false
+            }else{
+                this.leaderboard = true
+            }
         }
     },
     template: `
-        <h2><button @click="started=true; resetGame(); generateScale()">New game</button></h2>
+    <h2><button @click="started=true; resetGame(); generateScale()">New game</button></h2>
         <p><div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div>
         <div v-if="started==true">Moves: {{ moves }}</div></p>
         <div v-if="started">
@@ -445,38 +526,59 @@ app.component('Reorder Notes', {
             <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
             <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button></h4>
         </div>
+
+    <div id="leaderboard" v-if="leaderboard">
+        Leader Board:
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Moves</th>
+            </tr>
+            <tr>
+                <td><ol><li v-for="item in nameList">{{ item }}</li></ol></td>
+                <td><ul><li v-for="item in scoreList">{{ item }}</li></ul></td>
+            </tr>
+        </table>
+    </div>
     `
 })
 
 app.component('PianoKeyboard', {
     data(){
         return{
-            
+          note: null
         }
     },
+    emmits: ['sendKey'],
     methods: {
-        
+      keyPressed(e){
+        notePressed = e.target.innerText
+        notePressed = notePressed.replace('2','')
+        this.note = notePressed
+        //console.log(this.note)
+        this.$emit('sendKey', this.note)
+      }
     },
     template: `
-        <ul id="keyboard">
-        <li note="C" class="white">C</li>
-        <li note="C#" class="black">C#</li>
-        <li note="D" class="white offset">D</li>
-        <li note="D#" class="black">D#</li>
-        <li note="E" class="white offset">E</li>
-        <li note="F" class="white">F</li>
-        <li note="F#" class="black">F#</li>
-        <li note="G" class="white offset">G</li>
-        <li note="G#" class="black">G#</li>
-        <li note="A" class="white offset">A</li>
-        <li note="A#" class="black">A#</li>
-        <li note="B" class="white offset">B</li>
-        <li note="C2" class="white">C2</li>
-        <li note="C#2" class="black">C#2</li>
-        <li note="D2" class="white offset">D2</li>
-        <li note="D#2" class="black">D#2</li>
-        <li note="E2" class="white offset">E2</li>
-    </ul>
+      <ul id="keyboard">
+        <li note="C" @click="keyPressed" class="white">C</li>
+        <li note="C#" @click="keyPressed" class="black">C#</li>
+        <li note="D" @click="keyPressed" class="white offset">D</li>
+        <li note="D#" @click="keyPressed" class="black">D#</li>
+        <li note="E" @click="keyPressed" class="white offset">E</li>
+        <li note="F" @click="keyPressed" class="white">F</li>
+        <li note="F#" @click="keyPressed" class="black">F#</li>
+        <li note="G" @click="keyPressed" class="white offset">G</li>
+        <li note="G#" @click="keyPressed" class="black">G#</li>
+        <li note="A" @click="keyPressed" class="white offset">A</li>
+        <li note="A#" @click="keyPressed" class="black">A#</li>
+        <li note="B" @click="keyPressed" class="white offset">B</li>
+        <li note="C" @click="keyPressed" class="white">C2</li>
+        <li note="C#" @click="keyPressed" class="black">C#2</li>
+        <li note="D" @click="keyPressed" class="white offset">D2</li>
+        <li note="D#" @click="keyPressed" class="black">D#2</li>
+        <li note="E" @click="keyPressed" class="white offset">E2</li>
+      </ul>
     `
 })
 
@@ -573,6 +675,7 @@ app.component('darkmode', {
         <button @click="switchTheme()">Toggle dark mode</button>
     `
 })
+
 
 // Mount App
 const mountedApp = app.mount('#app')
