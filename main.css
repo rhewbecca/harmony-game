@@ -90,9 +90,8 @@ h2{
 }
 
 h3{
-    /*float:inline-end;
-    margin:0 auto;*/
-    margin: -15px;
+    float:inline-start;
+    margin:0 auto;
     clear:left;
     height:auto;
     z-index: 0;
@@ -216,8 +215,7 @@ border-radius: 0 5px 5px 5px;
     width: 41rem;
     margin: 0.5rem auto;
     padding: 3rem 0 0 3rem;
-    /*position: relative;*/
-    position: sticky;
+    position: relative;
     border: 1px solid var(--keyboard-border);
     border-radius: 1rem;
     background-color: var(--keyboard);
