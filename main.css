@@ -7,24 +7,31 @@
     border:0.16em solid rgba(255, 255, 255, 0);
     border-radius:2em;
     border-color: #000000;
-    background-color: #e0f376;
+    background-color: #d1e42b;
     padding:0.5em 3em;
     margin:0 0.1em 0.1em 0;
     font-family:'Roboto',sans-serif;
     font-weight: 400;
-    font-display: center;
+    font-display: auto;
     box-sizing: border-box;
+    color:#000000;
+    text-shadow: 0 0.04em 0.04em rgba(0,0,0,0.35);
+    transition: all 0.2s;
+    text-decoration:none;
+    text-transform: uppercase;
 }
 
 body {
     padding: 25px;
     background-image: linear-gradient(to right, rgba(245, 227, 227, 0.856) , rgb(235, 235, 194));
-    color: black;
+    color: rgb(0, 0, 51);
     font-size: 20px;
 } 
 .dark-mode {
-    background-image: linear-gradient(to right, rgb(10, 28, 61) , rgb(11, 35, 49));
-    color: white;
+    background-image: linear-gradient(to right, #0a1c3d , rgb(11, 35, 49));
+    color: rgb(253, 253, 253);
+    background-color: #2b66e4;
+    border-color: #ffffff;
 }
 
 button{
@@ -33,7 +40,7 @@ button{
     border:0.16em solid rgba(255, 255, 255, 0);
     border-radius:2em;
     box-sizing: border-box;
-    background-color: rgb(231, 117, 117);
+    background-color: #e77575;
     text-decoration:none;
     text-transform: uppercase;
     font-family:'Roboto',sans-serif;
@@ -70,6 +77,7 @@ h1{
     font-size: larger;
     font-weight: bold;
     font-display: center;
+    position: relative;
 }
 
 h2{
@@ -82,23 +90,24 @@ h2{
     font-size: large;
     font-weight: bold;
     font-display: center;
+    position: relative;
 }
 
-button1{
-    padding:0.5em 3em;
-    margin:0 0.1em 0.1em 0;
-    border:0.2em solid rgba(255, 255, 255, 0);
-    border-radius:2em;
-    box-sizing: border-box;
-    background-color: #f3ffae;
-    text-decoration:none;
-    text-transform: uppercase;
-    font-family:'Roboto',sans-serif;
-    font-weight: 400;
-    color:#000000;
-    text-shadow: 0 0.04em 0.04em rgba(0,0,0,0.35);
+h3{
+    float:inline-start;
+    margin:0 auto;
+    clear:left;
+    height:auto;
+    z-index: 0;
     text-align: center;
-    transition: all 0.2s;
+    font-family: 'Roboto',sans-serif;
+    font-size: larger;
+    font-weight: bold;
+    font-display: center;
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    margin-left: -104.5px;
 }
 
 h4{
@@ -108,6 +117,7 @@ h4{
     font-size: larger;
     font-weight: bold;
     font-display: center;
+    height: auto;
 }
 
 canvas{

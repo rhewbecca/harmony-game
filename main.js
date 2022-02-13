@@ -105,10 +105,11 @@ app.component('mainmenu', {
     data() {
         return{
             currentPage: null,
-            games: ['Guess Note', 'Guess Scale', 'Reorder Notes', 'darkmode'],
+            games: ['Guess Note', 'Guess Scale', 'Reorder Notes'],
             score: 0,
             leaderboard: true,
-            scoreList: [3,5,6]
+            scoreList: [3,5,6],
+            theme: 'dark mode'
         }
     },
     methods: {
@@ -120,6 +121,10 @@ app.component('mainmenu', {
         updateMain(e){
             this.score = e
             console.log(this.score)
+        },
+        switchTheme() {
+            var element = document.body;
+            element.classList.toggle("dark-mode");
         }
     },
     template: `
@@ -138,6 +143,7 @@ app.component('mainmenu', {
             </div>
             <component :is='currentPage' @sendScore="updateMain"/>
         </div>
+        <div><h3><button @click="switchTheme">{{ theme }}</button></h3></div>
     `
 })
 
@@ -231,20 +237,21 @@ app.component('Guess Note', {
         },
     },
     template: `
-        <div>
-            <h2><button @click="started=true; resetGame(); generateScale()">New game</button></h2>
-            <h3><div v-if="started==true"> Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></h3>
-        </div>
+        <h2><button @click="started=true; resetGame(); generateScale()">New game</button></h2>
+        <p><div v-if="started==true"> Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></p>
         <div v-if="started">
-            <button1 v-for="note in generatedScale">{{ note }}</button1>
+            <div class="draggable" v-for="note in generatedScale">{{ note }}</div>
             <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button>
             <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
             <button onclick="playScale()">Listen scale</button>
             <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button></h4>
-            <div><PianoKeyboard></PianoKeyboard></div>
-            <div><input type="checkbox" v-model="checked">Use mic</div>
+            <div>
+            <input type="checkbox" v-model="checked">Use mic
+            <input type="checkbox" v-model="checked2">Use keyboard
+            </div>
         </div>
         <visualizer v-if="checked" @sendAnswer=checkAnswer></visualizer>
+        <div><PianoKeyboard v-if="checked2" @sendKey=checkAnswer></PianoKeyboard></div>
     `
 })
 
@@ -328,16 +335,13 @@ app.component('Guess Scale', {
         }
     },
     template: `
-        <div>
-            <h2><button @click="started=true; resetGame(); generateScale()">New game</button></h2>
-            <h3><div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></h3>
-        </div>
+        <h2><button @click="started=true; resetGame(); generateScale()">New game</button></h2>
+        <p><div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></p>
         <div v-if="started">
-            <button1 v-for="note in generatedScale">{{ note }}</button1>
-            <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button></h4>
+            <div class="draggable" v-for="note in generatedScale">{{ note }}</div>
+            <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button>
             <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
-            <button onclick="playScale()">Listen scale</button>
-            <div><PianoKeyboard></PianoKeyboard></div>
+            <button onclick="playScale()">Listen scale</button></h4>
         </div>
     `
 })
@@ -432,18 +436,15 @@ app.component('Reorder Notes', {
         }
     },
     template: `
-    <div>
         <h2><button @click="started=true; resetGame(); generateScale()">New game</button></h2>
-        <div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div>
-        <div v-if="started==true">Moves: {{ moves }}</div>
-    </div>
-    <div v-if="started">
-        <div class="draggable" v-for="note in generatedScale" v-bind:id="note" @click="swap(note)">{{ note }}</div>
-        <button onclick="playScale()">Listen scale</button>
-        <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
-        <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button>
-        <div><PianoKeyboard></PianoKeyboard></div>
-    </div>
+        <p><div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div>
+        <div v-if="started==true">Moves: {{ moves }}</div></p>
+        <div v-if="started">
+            <div class="draggable" v-for="note in generatedScale" v-bind:id="note" @click="swap(note)">{{ note }}</div>
+            <h4><button onclick="playScale()">Listen scale</button>
+            <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
+            <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button></h4>
+        </div>
     `
 })
 
@@ -567,22 +568,11 @@ app.component('visualizer', {
 })
 
 app.component('darkmode', {
-    data(){
-        return{
-            
-        }
-    },
-    methods: {
-        darkmode(){
-            document.body.classList.toggle("dark-mode");
-        }
-    },
     template: `
         <p>Click the button to toggle between dark and light mode for this page.</p>
-        <button @click="darkmode()">Toggle dark mode</button>
+        <button @click="switchTheme()">Toggle dark mode</button>
     `
 })
-
 
 // Mount App
 const mountedApp = app.mount('#app')
