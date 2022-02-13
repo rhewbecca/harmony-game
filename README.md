@@ -16,13 +16,15 @@ It's a simple VueJS application containing some games concerning music.
 - [Features](#features)
 - [Structure](#structure)
 - [Custom configurations](#custom-configurations)
+- [Future improvements](#future-improvements)
 - [License](#license)
 
 # About
 
 [(Back to top)](#table-of-contents)
 
-This is a project for ACTAM course in Politecnico di Milano.
+This is a project for ACTAM course in Politecnico di Milano. It's a collection of mini games related to music (by now 3 games).
+Its purpose is to implement a real application experimenting with WebAudio API, Firebase, VueJs and WebMIDI API. 
 
 
 # Installation
@@ -42,9 +44,9 @@ VueJs framework allows you to extend the application with new games, new input m
 ### HARMONY:
 The content of the games concerns the harmonic part of music, in particular the recognition of notes and scales. This can be extended to other aspects.
 ### INPUT METHODS:
-The game "Guess Note" allows you to choose different input methods to give answers: a traditional four-guesses template, a little beautiful keyboard and even a microphone!
+The game "Guess Note" allows you to choose different input methods to give answers: a traditional four-guesses template, a little beautiful onscreen keyboard, a MIDI device and even a microphone!
 ### PITCH RECOGNITION:
-If you choose your mic as input method you can see a real-time frequency spectrogram
+If you choose your mic as input method you can see a real-time frequency spectrogram and capture your answer. You can play an instrument or sing the note or whistle!
 
 
 # Structure
@@ -96,6 +98,9 @@ main.js, index.html, main.css
 
 - `visualizer` : frequency spectrum widget. It can be used as input for `Guess Note` game. You can play a real instrument or whistle the note to the microphone. The note will be recognized and you can answer clicking on "CAPTURE ANSWER" when a note is recognized.
 
+- `midiInput` : empty widget, contains methods for MIDI API. It can be used as input for `Guess Note` game.
+
+
 
 ### Global functions
 
@@ -122,6 +127,9 @@ main.js, index.html, main.css
 - `getPitch(array)` : analyze frequencies coming from mic and compare them with `frequencies` array. Low level work is done by `analyzer` node in WebAudio API
 
 - `draw()` : draw frames to visualize spectrum from mic in real-time
+
+- `getMIDIMessage(message)` : get a MIDI message and return the corresponding note (for example: 60 => "C")
+
 
 
 # Custom configurations
@@ -161,6 +169,14 @@ You can change very few lines of code in order to make this app your own. Howeve
    <script src="https://unpkg.com/vue@next"></script>
    ```    
 
+# Future improvements
+
+[(Back to top)](#table-of-contents)
+
+- adding new games
+- adding algorythms for chords
+- improving layout
+- improve error handling
 
 # License
 
