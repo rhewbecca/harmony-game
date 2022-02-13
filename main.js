@@ -101,8 +101,6 @@ function shuffle(array) {
 //main app
 const app = Vue.createApp({})
 
-
-// components
 app.component('mainmenu', {
     data() {
         return{
@@ -245,24 +243,22 @@ app.component('Guess Note', {
         }
     },
     template: `
-        <div>
-            <h2>
-            <button @click="started=true; resetGame(); generateScale()">New game</button>
-            <button @click="showLeaderBoard">Leaderboard</button>
-            </h2>
-            <h3><div v-if="started==true"> Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></h3>
-        </div>
+        <h2><button @click="started=true; resetGame(); generateScale()">New game</button>
+        <button @click="showLeaderBoard">Leaderboard</button></h2>
+        <p><div v-if="started==true"> Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></p>
         <div v-if="started">
-            <button1 v-for="note in generatedScale">{{ note }}</button1>
+            <div class="draggable" v-for="note in generatedScale">{{ note }}</div>
             <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button>
             <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
             <button onclick="playScale()">Listen scale</button>
             <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button></h4>
             <div>
-              <input type="checkbox" v-model="checked">Use mic
-              <input type="checkbox" v-model="checked2">Use keyboard
+            <input type="checkbox" v-model="checked">Use mic
+            <input type="checkbox" v-model="checked2">Use keyboard
             </div>
         </div>
+        <visualizer v-if="checked" @sendAnswer=checkAnswer></visualizer>
+        <div><PianoKeyboard v-if="checked2" @sendKey=checkAnswer></PianoKeyboard></div>
 
         <div id="leaderboard" v-if="leaderboard">
             Leader Board:
@@ -277,9 +273,6 @@ app.component('Guess Note', {
                 </tr>
             </table>
         </div>
-
-        <visualizer v-if="checked" @sendAnswer=checkAnswer></visualizer>
-        <div><PianoKeyboard v-if="checked2" @sendKey=checkAnswer></PianoKeyboard></div>
     `
 })
 
@@ -389,18 +382,14 @@ app.component('Guess Scale', {
         }
     },
     template: `
-        <div>
-            <h2>
-            <button @click="started=true; resetGame(); generateScale()">New game</button>
-            <button @click="showLeaderBoard">Leaderboard</button>
-            </h2>
-            <h3><div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></h3>
-        </div>
+        <h2><button @click="started=true; resetGame(); generateScale()">New game</button>
+        <button @click="showLeaderBoard">Leaderboard</button></h2>
+        <p><div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></p>
         <div v-if="started">
-            <button1 v-for="note in generatedScale">{{ note }}</button1>
-            <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button></h4>
+            <div class="draggable" v-for="note in generatedScale">{{ note }}</div>
+            <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button>
             <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
-            <button onclick="playScale()">Listen scale</button>
+            <button onclick="playScale()">Listen scale</button></h4>
         </div>
 
         <div id="leaderboard" v-if="leaderboard">
@@ -535,20 +524,16 @@ app.component('Reorder Notes', {
         }
     },
     template: `
-    <div>
-        <h2>
-        <button @click="started=true; resetGame(); generateScale()">New game</button>
-        <button @click="showLeaderBoard">Leaderboard</button>
-        </h2>
-        <div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div>
-        <div v-if="started==true">Moves: {{ moves }}</div>
-    </div>
-    <div v-if="started">
-        <div class="draggable" v-for="note in generatedScale" v-bind:id="note" @click="swap(note)">{{ note }}</div>
-        <button onclick="playScale()">Listen scale</button>
-        <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
-        <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button>
-    </div>
+    <h2><button @click="started=true; resetGame(); generateScale()">New game</button>
+    <button @click="showLeaderBoard">Leaderboard</button></h2>
+        <p><div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div>
+        <div v-if="started==true">Moves: {{ moves }}</div></p>
+        <div v-if="started">
+            <div class="draggable" v-for="note in generatedScale" v-bind:id="note" @click="swap(note)">{{ note }}</div>
+            <h4><button onclick="playScale()">Listen scale</button>
+            <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button>
+            <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button></h4>
+        </div>
 
     <div id="leaderboard" v-if="leaderboard">
         Leader Board:
