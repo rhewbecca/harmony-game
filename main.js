@@ -105,7 +105,19 @@ app.component('mainmenu', {
     data() {
         return{
             currentPage: null,
-            games: ['Guess Note', 'Guess Scale', 'Reorder Notes', 'darkmode'],
+            games: ['Guess Note', 'Guess Scale', 'Reorder Notes'],
+            theme: 'dark mode'
+        }
+    },
+    methods:{
+        switchTheme() {
+            var element = document.body;
+            element.classList.toggle("dark-mode");
+            if (this.theme == "dark mode"){
+                this.theme = "ligth mode"
+            } else {
+                this.theme = "dark mode"
+            }
         }
     },
     template: `
@@ -113,6 +125,7 @@ app.component('mainmenu', {
         <div id="game">
             <component :is='currentPage' />
         </div>
+        <div><h3><button @click="switchTheme">{{ theme }}</button></h3></div>
     `
 })
 
@@ -674,23 +687,6 @@ app.component('visualizer', {
     template: `
         <canvas id="freq"></canvas>
         <button @click="this.$emit('sendAnswer', this.note)">Capture answer {{ note }}</button>
-    `
-})
-
-app.component('darkmode', {
-    data(){
-        return{
-
-        }
-    },
-    methods: {
-        darkmode(){
-            document.body.classList.toggle("dark-mode");
-        }
-    },
-    template: `
-        <p>Click the button to toggle between dark and light mode for this page.</p>
-        <button @click="darkmode()">Toggle dark mode</button>
     `
 })
 
