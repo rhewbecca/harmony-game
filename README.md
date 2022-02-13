@@ -86,15 +86,43 @@ main.js, index.html, main.css
 
 - `mainmenu` : It's the main component of the application, directly loaded inside the main app in `index.html`. It's the main parent and works as a container for every loaded game
 
-- `Guess Note` : 1st game. The goal is to guess the missing note from a list of seven, which represent a full scale. To help the user there is a "hint" button which shows the name of the specific scale.
+- `Guess Note` : 1st game. The goal is to guess the missing note from a list of seven, which represent a full scale. To help the user there is a "hint" button which shows the name of the specific scale. Microphone or an onscreen keyboard can also be chosen as the input method. You can always skip the question and listen to the scale.
 
-Microphone or an onscreen keyboard can also be chosen as the input method.
+- `Guess Scale` : 2nd game. The goal is to guess the scale from a list of seven notes, which represent a full scale. You can always skip the question and listen to the scale.
 
-### Functions
+- `Reorder Notes` : 3rd game. The goal is to reorder the seven notes of a given scale, swapping two notes a time. You can always skip the question and listen to the scale.
 
-[(Back to top)](#table-of-contents)
+- `PianoKeyboard` : little keyboard widget. It can be used as input for `Guess Note` game.
+
+- `visualizer` : frequency spectrum widget. It can be used as input for `Guess Note` game. You can play a real instrument or whistle the note to the microphone. The note will be recognized and you can answer clicking on "CAPTURE ANSWER" when a note is recognized.
+
 
 ### Global functions
+
+- `function play(note, fundamental)` : play single tone in respect to the fundamental (based on the scale)
+
+- `function playScale()` : play the seven notes of a given scale
+
+- `function shiftArray(index)` : shift `notes` array by fundamental
+
+- `function shuffle(array)` : randomize an array, used for randomizing answers and notes in "Reorder Note" games. Fisher-Yates Shuffle
+
+### Relevant functions inside components
+
+- `randomScale()` : retrive random scale using `notes` and `distances` arrays
+
+- `generateAnswers()` : generate possible answers using `notes` and `distances` arrays
+
+- `checkAnswer(e)` : check if given answer is correct or not
+
+- `showLeaderBoard()` : show or hide leaderboard
+
+- `swap(e)` : important method for "Reorder Notes" game. Swap position of two clicked notes
+
+- `getPitch(array)` : analyze frequencies coming from mic and compare them with `frequencies` array
+
+- `showLeaderBoard()` : show or hide leaderboard
+
 
 # Custom configurations
 
@@ -127,11 +155,11 @@ You can change very few lines of code in order to make this app your own. Howeve
 
  - To use local VueJS installation :
 
- This app uses `Vue 3`. Using Vue 2 will break the app. You can use a different path by changing following line inside `index.html`:
+   This app uses `Vue 3`. Using Vue 2 will break the app. You can use a different path by changing following line inside `index.html`:
 
- ```
- <script src="https://unpkg.com/vue@next"></script>
- ```    
+   ```
+   <script src="https://unpkg.com/vue@next"></script>
+   ```    
 
 
 # License
