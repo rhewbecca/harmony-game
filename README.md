@@ -14,7 +14,7 @@ It's a simple VueJS application containing some games concerning music.
 - [About](#about)
 - [Installation](#installation)
 - [Features](#features)
-- [File Structure](#flie-structure)
+- [Structure](#structure)
 - [Custom configurations](#custom-configurations)
 - [Contributing](#contributing)
 - [License](#license)
@@ -43,6 +43,54 @@ If you want to run this app without an internet connection you need to change Vu
 <li><b>PITCH RECOGNITION:</b> If you choose your mic as input method you can see a real-time frequency spectrogram</li>
 </ul>
 
+# Structure
+
+[(Back to top)](#table-of-contents)
+
+File `main.js` contains the Vue core and general functions called by different components.
+
+`mainmenu` is the main component of the app and it's a container for different games.
+
+Each game is a component itself, with its variables (`data`), pricate functions (`methods`) and HTML structure (`template`).
+Game components communicate with mainmenu, passing variables like scores. Child to parent communication in VueJS take place with an emitter object inside child and
+a listener inside parent.
+
+<pre>
+main.js, index.html, main.css
+   |
+   |
+   |----general functions
+   |
+   |----mainmenu-------------------------------------------------------------< [listener]       <----|  <----|
+   |                |         |            |           |                                             |       |
+   |                data      [mounted]    methods     template                                      |       |
+   |                                                                                                 |       |
+   |                                                                                                 |       |
+   |----game1-----------------------------------------------------> [emitter]........................|       |
+   |                |         |            |           |                                                     |
+   |                data      [mounted]    methods     template                                              |
+   |                                                                                                         |
+   |----game2-----------------------------------------------------> [emitter]................................|
+   |                |         |            |           |
+   |                data      [mounted]    methods     template
+   |---- ...
+</pre>
+
+### Components
+
+[(Back to top)](#table-of-contents)
+
+- `mainmenu` : It's the main component of the application, directly loaded inside the main app in `index.html`. It's the main parent and works as a container for every loaded game
+
+- `Guess Note` : 1st game. The goal is to guess the missing note from a list of seven, which represent a full scale. To help the user there is a "hint" button which shows the name of the specific scale.
+
+Microphone or an onscreen keyboard can also be chosen as the input method.
+
+### Functions
+
+[(Back to top)](#table-of-contents)
+
+### Global functions
 
 # Custom configurations
 
