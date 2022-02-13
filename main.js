@@ -101,6 +101,8 @@ function shuffle(array) {
 //main app
 const app = Vue.createApp({})
 
+
+// components
 app.component('mainmenu', {
     data() {
         return{
