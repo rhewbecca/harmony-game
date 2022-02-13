@@ -119,9 +119,9 @@ main.js, index.html, main.css
 
 - `swap(e)` : important method for "Reorder Notes" game. Swap position of two clicked notes
 
-- `getPitch(array)` : analyze frequencies coming from mic and compare them with `frequencies` array
+- `getPitch(array)` : analyze frequencies coming from mic and compare them with `frequencies` array. Low level work is done by `analyzer` node in WebAudio API
 
-- `showLeaderBoard()` : show or hide leaderboard
+- `draw()` : draw frames to visualize spectrum from mic in real-time
 
 
 # Custom configurations
