@@ -134,6 +134,7 @@ app.component('Guess Note', {
             hint: false,
 
             leaderboard: false,
+            nameList: [],
             scoreList: []
         }
     },
@@ -143,7 +144,8 @@ app.component('Guess Note', {
                 ...doc.data(),
             }))
             for (i=0; i<data.length; i++){
-                this.scoreList[i] = data[i].name + " " + data[i].score
+                this.nameList[i] = data[i].name
+                this.scoreList[i] = data[i].score
             }
         })
     },
@@ -218,13 +220,20 @@ app.component('Guess Note', {
             this.score = 0
             this.questionsNumberDone = 0
             this.leaderboard = false
+        },
+        showLeaderBoard(){
+            if(this.leaderboard == true){
+                this.leaderboard = false
+            }else{
+                this.leaderboard = true
+            }
         }
     },
     template: `
         <div>
             <h2>
             <button @click="started=true; resetGame(); generateScale()">New game</button>
-            <button @click="leaderboard=true">Leaderboard</button>
+            <button @click="showLeaderBoard">Leaderboard</button>
             </h2>
             <h3><div v-if="started==true"> Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></h3>
         </div>
@@ -242,9 +251,16 @@ app.component('Guess Note', {
 
         <div id="leaderboard" v-if="leaderboard">
             Leader Board:
-            <ol>
-            <li v-for="item in scoreList">{{ item }}</li>
-            </ol>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Score</th>
+                </tr>
+                <tr>
+                    <td><ol><li v-for="item in nameList">{{ item }}</li></ol></td>
+                    <td><ul><li v-for="item in scoreList">{{ item }}</li></ul></td>
+                </tr>
+            </table>
         </div>
 
         <visualizer v-if="checked" @sendAnswer=checkAnswer></visualizer>
@@ -266,6 +282,7 @@ app.component('Guess Scale', {
             questionsNumberDone: 0,
 
             leaderboard: false,
+            nameList: [],
             scoreList: []
         }
     },
@@ -275,7 +292,8 @@ app.component('Guess Scale', {
                 ...doc.data(),
             }))
             for (i=0; i<data.length; i++){
-                this.scoreList[i] = data[i].name + " " + data[i].score
+                this.nameList[i] = data[i].name
+                this.scoreList[i] = data[i].score
             }
         })
     },
@@ -346,13 +364,20 @@ app.component('Guess Scale', {
             this.score = 0
             this.questionsNumberDone = 0
             this.leaderboard = false
+        },
+        showLeaderBoard(){
+            if(this.leaderboard == true){
+                this.leaderboard = false
+            }else{
+                this.leaderboard = true
+            }
         }
     },
     template: `
         <div>
             <h2>
             <button @click="started=true; resetGame(); generateScale()">New game</button>
-            <button @click="leaderboard=true">Leaderboard</button>
+            <button @click="showLeaderBoard">Leaderboard</button>
             </h2>
             <h3><div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></h3>
         </div>
@@ -365,9 +390,16 @@ app.component('Guess Scale', {
 
         <div id="leaderboard" v-if="leaderboard">
             Leader Board:
-            <ol>
-            <li v-for="item in scoreList">{{ item }}</li>
-            </ol>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Score</th>
+                </tr>
+                <tr>
+                    <td><ol><li v-for="item in nameList">{{ item }}</li></ol></td>
+                    <td><ul><li v-for="item in scoreList">{{ item }}</li></ul></td>
+                </tr>
+            </table>
         </div>
     `
 })
@@ -389,6 +421,7 @@ app.component('Reorder Notes', {
             hint: false,
 
             leaderboard: false,
+            nameList: [],
             scoreList: []
         }
     },
@@ -398,7 +431,8 @@ app.component('Reorder Notes', {
                 ...doc.data(),
             }))
             for (i=0; i<data.length; i++){
-                this.scoreList[i] = data[i].name + " " + data[i].moves
+                this.nameList[i] = data[i].name
+                this.scoreList[i] = data[i].moves
             }
         })
     },
@@ -476,13 +510,20 @@ app.component('Reorder Notes', {
                 }, 400)
 
             }
+        },
+        showLeaderBoard(){
+            if(this.leaderboard == true){
+                this.leaderboard = false
+            }else{
+                this.leaderboard = true
+            }
         }
     },
     template: `
     <div>
         <h2>
         <button @click="started=true; resetGame(); generateScale()">New game</button>
-        <button @click="leaderboard=true">Leaderboard</button>
+        <button @click="showLeaderBoard">Leaderboard</button>
         </h2>
         <div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div>
         <div v-if="started==true">Moves: {{ moves }}</div>
@@ -496,9 +537,16 @@ app.component('Reorder Notes', {
 
     <div id="leaderboard" v-if="leaderboard">
         Leader Board:
-        <ol>
-        <li v-for="item in scoreList">{{ item }}</li>
-        </ol>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Moves</th>
+            </tr>
+            <tr>
+                <td><ol><li v-for="item in nameList">{{ item }}</li></ol></td>
+                <td><ul><li v-for="item in scoreList">{{ item }}</li></ul></td>
+            </tr>
+        </table>
     </div>
     `
 })
