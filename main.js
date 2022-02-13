@@ -121,11 +121,11 @@ app.component('mainmenu', {
         }
     },
     template: `
-        <div><button @click="switchTheme">{{ theme }}</button></div>
         <h1> GAMES: <button v-for='game in games' @click="currentPage = game">{{ game }}</button></h1>
         <div id="game">
             <component :is='currentPage' />
         </div>
+        <div><h3><button @click="switchTheme">{{ theme }}</button></h3></div>
     `
 })
 
