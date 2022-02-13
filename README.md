@@ -16,7 +16,6 @@ It's a simple VueJS application containing some games concerning music.
 - [Features](#features)
 - [File Structure](#flie-structure)
 - [Custom configurations](#custom-configurations)
-- [Contributing](#contributing)
 - [License](#license)
 
 # About
@@ -32,19 +31,19 @@ This is a project for ACTAM course in Politecnico di Milano.
 
 No need to install. You can download .zip folder and run inside any recent browser supporting WebAudioAPI.
 
-If you want to run this app without an internet connection you need to change Vue and Firebase initialization as shown below.
+If you want to run this app without an internet connection you need to change Vue and Firebase initialization as [shown below](#custom-configurations).
 
 # Features
 
 [(Back to top)](#table-of-contents)
 
-## MODULARITY:
+### MODULARITY:
 VueJs framework allows you to extend the application with new games, new input methods, new widgets and functions.
-## HARMONY:
+### HARMONY:
 The content of the games concerns the harmonic part of music, in particular the recognition of notes and scales. This can be extended to other aspects.
-## INPUT METHODS:
+### INPUT METHODS:
 The game "Guess Note" allows you to choose different input methods to give answers: a traditional four-guesses template, a little beautiful keyboard and even a microphone!
-## PITCH RECOGNITION:
+### PITCH RECOGNITION:
 If you choose your mic as input method you can see a real-time frequency spectrogram
 
 
@@ -52,7 +51,7 @@ If you choose your mic as input method you can see a real-time frequency spectro
 
 [(Back to top)](#table-of-contents)
 
-You can overwrite the existing icons and colors mapping by copying the yaml files from `$(dirname $(gem which colorls))/yaml` into `~/.config/colorls`, and changing them.
+You can change very few lines of code in order to make this app your own. However limitation may apply, specifically version of external libraries.
 
 - To use different firebase script reference:
 
@@ -84,10 +83,6 @@ You can overwrite the existing icons and colors mapping by copying the yaml file
  ```
  <script src="https://unpkg.com/vue@next"></script>
  ```    
-
-# Contributing
-
-[(Back to top)](#table-of-contents)
 
 
 # License
