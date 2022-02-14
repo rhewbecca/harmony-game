@@ -51,6 +51,7 @@ The game "Guess Note" allows you to choose different input methods to give answe
 If you choose your mic as input method you can see a real-time frequency spectrogram and capture your answer. You can play an instrument or sing the note or whistle!
 ### SCORE BOARD
 Your scores are saved in the cloud thanks to a Firebase database.
+![image](https://github.com/Rhapsodizer/img/blob/main/Cattura.PNG?raw=true)
 
 
 # Structure
