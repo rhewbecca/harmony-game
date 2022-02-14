@@ -61,10 +61,10 @@ const c = new AudioContext()
 function play(note, fundamental) {
     const attack = 0.01;
     const release = 0.2;
-    i = shiftArray(fundamental).indexOf(note)
+    i = shiftArray(fundamental).indexOf(note) - shiftArray(fundamental).indexOf("A")
     const o = c.createOscillator();
     const g = c.createGain();
-    o.frequency.value = 220*Math.pow(2, i/12);
+    o.frequency.value = 440*Math.pow(2, i/12);
     o.connect(g);
     g.connect(c.destination);
     const now = c.currentTime;
