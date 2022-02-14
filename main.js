@@ -1,3 +1,4 @@
+// Global variables:------------------------------------------------------
 const notes = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
 
 const frequencies = [
@@ -37,7 +38,9 @@ const midiNotes = [
     [7, 19, 31, 43, 55, 67, 79, 91, 103, 115, 127],
     [8, 20, 32, 44, 56, 68, 80, 92, 104, 116]
 ]
+//------------------------------------------------------------------------
 
+// Initalize Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyCbrwtBDz-tE3io_qU-TazOuCsWdzDafBg",
     authDomain: "rhapsodizer-703a1.firebaseapp.com",
@@ -46,14 +49,13 @@ const firebaseConfig = {
     messagingSenderId: "499657467111",
     appId: "1:499657467111:web:9ed371301b9e160def2e42"
 }
-//Initalize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+firebase.initializeApp(firebaseConfig)
+const db = firebase.firestore()
 
-//Initialize Audio
+// Initialize Audio
 const c = new AudioContext()
 
-// Global functions:----------------------------------------------------------------------
+// Global functions:--------------------------------------------------------
 
 //Play note of shifted "notes" array (shifting based on first note of scale)
 function play(note, fundamental) {
@@ -111,9 +113,9 @@ function shuffle(array) {
   return array;
 }
 
-//------------------------------------------------------------------------------------------
+// Vue -----------------------------------------------------------------------
 
-//main app
+// Main app
 const app = Vue.createApp({})
 
 app.component('mainmenu', {
@@ -125,6 +127,7 @@ app.component('mainmenu', {
         }
     },
     methods:{
+        // Change from light mode to dark mode
         switchTheme() {
             var element = document.body;
             element.classList.toggle("dark-mode");
@@ -138,6 +141,7 @@ app.component('mainmenu', {
     template: `
         <div><button @click="switchTheme">{{ theme }}</button></div>
         <h1> GAMES: <button v-for='game in games' @click="currentPage = game">{{ game }}</button></h1>
+        // Game container
         <div id="game">
             <component :is='currentPage' />
         </div>
@@ -156,18 +160,21 @@ app.component('Guess Note', {
             score: 0,
             questionsNumberTot: 10,
             questionsNumberDone: 0,
+            hint: false,
 
+            // Alternative inputs
             checked: false,
             checked2: false,
             checked3: false,
-            hint: false,
 
+            // Leaderboard
             leaderboard: false,
             nameList: [],
             scoreList: []
         }
     },
     mounted(){
+        // Firebase communication
         db.collection("guessNote").orderBy("score", "desc").onSnapshot((snapshot) => {
             const data = snapshot.docs.map((doc) => ({
                 ...doc.data(),
@@ -181,11 +188,15 @@ app.component('Guess Note', {
     methods: {
         generateScale() {
             this.questionsNumberDone +=1
+            // Generate scale
             this.randomScale()
             this.generatedScale = [...this.scale]
+            // Choose correct answer
             var pos = Math.floor(Math.random()*7)
             this.correctAnswer = this.generatedScale[pos]
+            // Visualize underscore in place of correct note
             this.generatedScale[pos] = '_'
+            // Generate possible answers
             this.generateAnswers()
         },
         randomScale() {
@@ -208,8 +219,11 @@ app.component('Guess Note', {
             this.scale = scale
         },
         generateAnswers() {
+            // Exclude existing notes from answers...
             const notes_tmp = [...notes].filter(x => scale.indexOf(x) === -1)
+            // ...but not the correct one
             const generatedAnswers = [this.correctAnswer]
+            // Generate other 3 unique answers
             while (generatedAnswers.length<4){
                 var el = notes_tmp[Math.floor(Math.random()*5)]
                 if ((new Set(generatedAnswers)).has(el)){
@@ -218,6 +232,7 @@ app.component('Guess Note', {
                     generatedAnswers.push(el)
                 }
             }
+            // return shuffled answers
             this.generatedAnswers = shuffle(generatedAnswers)
         },
         checkAnswer(e) {
@@ -228,12 +243,11 @@ app.component('Guess Note', {
                 // Show complete correct scale
                 this.generatedScale = [...this.scale]
                 playScale()
-                //alert("Correct!")
             } else {
                 alert("You died! Correct answer is " + this.correctAnswer)
             }
 
-            // All questions completed
+            // All questions completed: sign score and show leaderboard
             if(this.questionsNumberDone == this.questionsNumberTot){
                 alert("Total score: " + this.score + "/" + this.questionsNumberTot)
                 name = prompt("Enter nickname: ")
@@ -242,7 +256,7 @@ app.component('Guess Note', {
                 this.leaderboard = true
             }
 
-            // Wait before next scale
+            // Wait before next question
             setTimeout(this.generateScale, 1800)
         },
         resetGame() {
@@ -262,6 +276,8 @@ app.component('Guess Note', {
         <h2><button @click="started=true; resetGame(); generateScale()">New game</button>
         <button @click="showLeaderBoard">Leaderboard</button></h2>
         <p><div v-if="started==true"> Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></p>
+
+        // When new game starts
         <div v-if="started">
             <div class="draggable" v-for="note in generatedScale">{{ note }}</div>
             <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button></h4>
@@ -277,10 +293,13 @@ app.component('Guess Note', {
                 <input type="checkbox" v-model="checked3">Use MIDI
             </div>
         </div>
+
+        // Alternative inputs
         <visualizer v-if="checked" @sendAnswer=checkAnswer></visualizer>
         <midiInput v-if="checked3" @sendMIDI=checkAnswer></midiInput>
         <div><PianoKeyboard v-if="checked2" @sendKey=checkAnswer></PianoKeyboard></div>
 
+        // Leaderboard
         <div id="leaderboard" v-if="leaderboard">
             Leader Board:
             <table>
@@ -310,12 +329,14 @@ app.component('Guess Scale', {
             questionsNumberTot: 10,
             questionsNumberDone: 0,
 
+            // Leaderboard
             leaderboard: false,
             nameList: [],
             scoreList: []
         }
     },
     mounted(){
+        // Firebase communication
         db.collection("guessScale").orderBy("score", "desc").onSnapshot((snapshot) => {
             const data = snapshot.docs.map((doc) => ({
                 ...doc.data(),
@@ -329,6 +350,7 @@ app.component('Guess Scale', {
     methods: {
         generateScale() {
             this.questionsNumberDone +=1
+            // Generate scale
             this.randomScale()
             this.generatedScale = [...this.scale]
             this.generateAnswers()
@@ -353,7 +375,9 @@ app.component('Guess Scale', {
             this.scale = scale
         },
         generateAnswers() {
+            // Include correct answer
             const generatedAnswers = [this.generatedScaleName]
+            // Generate other 3 unique answers
             while (generatedAnswers.length<4){
                 var el = distances[Math.floor(Math.random()*5)][0]
                 if ((new Set(generatedAnswers)).has(el)){
@@ -362,6 +386,7 @@ app.component('Guess Scale', {
                     generatedAnswers.push(el)
                 }
             }
+            // return shuffled answers
             this.generatedAnswers = shuffle(generatedAnswers)
         },
         checkAnswer(e) {
@@ -372,7 +397,6 @@ app.component('Guess Scale', {
                 // Show complete correct scale
                 this.generatedScale = [...this.scale]
                 playScale()
-                //alert("Correct!")
             } else {
                 alert("You died! Correct answer is " + this.generatedScaleName)
             }
@@ -406,6 +430,8 @@ app.component('Guess Scale', {
         <h2><button @click="started=true; resetGame(); generateScale()">New game</button>
         <button @click="showLeaderBoard">Leaderboard</button></h2>
         <p><div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></p>
+
+        // When game starts
         <div v-if="started">
             <div class="draggable" v-for="note in generatedScale">{{ note }}</div>
             <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button></h4>
@@ -413,6 +439,7 @@ app.component('Guess Scale', {
             <div> <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button></div>
         </div>
 
+        // Leaderboard
         <div id="leaderboard" v-if="leaderboard">
             Leader Board:
             <table>
@@ -445,12 +472,14 @@ app.component('Reorder Notes', {
             moves: 0,
             hint: false,
 
+            // Leaderboard
             leaderboard: false,
             nameList: [],
             scoreList: []
         }
     },
     mounted(){
+        // Firebase communication
         db.collection("reorderNotes").orderBy("moves", "asc").onSnapshot((snapshot) => {
             const data = snapshot.docs.map((doc) => ({
                 ...doc.data(),
@@ -464,7 +493,9 @@ app.component('Reorder Notes', {
     methods: {
         generateScale() {
             this.questionsNumberDone +=1
+            // Generate scale
             this.randomScale()
+            // Shuffle array
             this.generatedScale = shuffle([...this.scale])
         },
         randomScale() {
@@ -485,14 +516,14 @@ app.component('Reorder Notes', {
                 scale.push(list[f_index + index])
             }
             this.scale = scale
-            // Debug
+            // Debug (or cheating)
             console.log(this.scale)
         },
         checkAnswer() {
             // Check if correct or not
             if (this.generatedScale.every(function(el, idx){return el == this.scale[idx]})) {
                 playScale()
-                // All questions completed
+                // All questions completed: enter score and show leaderboard
                 if(this.questionsNumberDone == this.questionsNumberTot){
                     alert("Total score: " + this.score + "/" + this.questionsNumberTot)
                     name = prompt("Enter nickname: ")
@@ -500,7 +531,7 @@ app.component('Reorder Notes', {
                     this.started = false
                     this.leaderboard = true
                 }
-                // Wait before next scale
+                // Wait before next question
                 setTimeout(this.generateScale, 1800)
             }
         },
@@ -510,6 +541,7 @@ app.component('Reorder Notes', {
             this.moves = 0
             this.leaderboard = false
         },
+        // Swap two clicked notes
         swap(el) {
             if (this.clicked == true){
                 this.secondNote = el
@@ -527,7 +559,7 @@ app.component('Reorder Notes', {
                 this.firstNote = el
                 document.getElementById(this.firstNote).style.backgroundColor = "yellow"
             }
-
+            // Wait to finish animation
             function clear(firstNote,secondNote) {
                 setTimeout(function(){
                     document.getElementById(firstNote).style.backgroundColor = null;
@@ -545,10 +577,12 @@ app.component('Reorder Notes', {
         }
     },
     template: `
-    <h2><button @click="started=true; resetGame(); generateScale()">New game</button>
-    <button @click="showLeaderBoard">Leaderboard</button></h2>
+        <h2><button @click="started=true; resetGame(); generateScale()">New game</button>
+        <button @click="showLeaderBoard">Leaderboard</button></h2>
         <p><div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div>
         <div v-if="started==true">Moves: {{ moves }}</div></p>
+
+        // When game start
         <div v-if="started">
             <div class="draggable" v-for="note in generatedScale" v-bind:id="note" @click="swap(note)">{{ note }}</div>
             <h4><button onclick="playScale()">Listen scale</button>
@@ -556,20 +590,21 @@ app.component('Reorder Notes', {
             <div><button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button></div>
         </div>
 
-    <div id="leaderboard" v-if="leaderboard">
-        Leader Board:
-        <table>
-            <tr>
-                <th>Name</th>
-                <th>Moves</th>
-            </tr>
-            <tr>
-                <td><ol><li v-for="item in nameList">{{ item }}</li></ol></td>
-                <td><ul><li v-for="item in scoreList">{{ item }}</li></ul></td>
-            </tr>
-        </table>
-    </div>
-    `
+        // Leaderboard
+        <div id="leaderboard" v-if="leaderboard">
+            Leader Board:
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Moves</th>
+                </tr>
+                <tr>
+                    <td><ol><li v-for="item in nameList">{{ item }}</li></ol></td>
+                    <td><ul><li v-for="item in scoreList">{{ item }}</li></ul></td>
+                </tr>
+            </table>
+        </div>
+        `
 })
 
 app.component('PianoKeyboard', {
@@ -633,17 +668,20 @@ app.component('visualizer', {
         this.canvas = document.getElementById("freq");
         ctx = this.canvas.getContext("2d");
 
+        // Create analyser node
         this.analyser = c.createAnalyser();
         this.analyser.fftSize = 1024;
         this.analyser.smoothingTimeConstant = 0.95;
 
         mss.connect(this.analyser)
 
+        // Initialize data
         this.bufferLength = this.analyser.frequencyBinCount;
         this.dataArray = new Float32Array(this.bufferLength);
         // Calculate frequency bin range
         this.bin_range = c.sampleRate/this.analyser.fftSize
 
+        // Visualize spectrum
         this.draw()
 
     },
@@ -682,6 +720,7 @@ app.component('visualizer', {
            freqMax = idx*this.bin_range
            freqMin = freqMax - this.bin_range
            note = null
+           // Confront maximum amplitude with frequencies array
            for (i=0; i<12; i++) {
                for (k=0; k<5; k++) {
                    if (frequencies[i][k]>=freqMin && frequencies[i][k]<freqMax) {
@@ -733,6 +772,7 @@ app.component('midiInput', {
                     if (midiNotes[i].includes(this.midiNote)){
                         this.pitch = notes[i]
                         console.log(this.pitch)
+                        // Check correct answer
                         this.$emit('sendMIDI', this.pitch)
                         break
                     }

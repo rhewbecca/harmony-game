@@ -33,7 +33,9 @@ Its purpose is to implement a real application experimenting with WebAudio API, 
 
 No need to install. You can download .zip folder and run inside any recent browser supporting WebAudioAPI.
 
-If you want to run this app without an internet connection you need to change Vue and Firebase initialization as [shown below](#custom-configurations).
+If you just wanna play check out the [live demo](https://rhewbecca.github.io/harmony-game/)!
+
+If you want to run this app without an internet connection or you want use your own database you need to change Vue and Firebase initialization as [shown below](#custom-configurations).
 
 # Features
 
@@ -47,6 +49,9 @@ The content of the games concerns the harmonic part of music, in particular the 
 The game "Guess Note" allows you to choose different input methods to give answers: a traditional four-guesses template, a little beautiful onscreen keyboard, a MIDI device and even a microphone!
 ### PITCH RECOGNITION:
 If you choose your mic as input method you can see a real-time frequency spectrogram and capture your answer. You can play an instrument or sing the note or whistle!
+### SCORE BOARD
+Your scores are saved in the cloud thanks to a Firebase database.
+![image](https://github.com/Rhapsodizer/img/blob/main/Cattura.PNG?raw=true)
 
 
 # Structure
@@ -138,6 +143,10 @@ main.js, index.html, main.css
 
 You can change very few lines of code in order to make this app your own. However limitation may apply, specifically version of external libraries.
 
+- To chance number of questions (default is 10):
+  
+  For each component you can change `questionsNumberTot: 10` variable in `data()` section
+
 - To use different firebase script reference:
 
   This app uses `Firebase 8.0.0`. You can use a different version by changing following line in `index.html`:
@@ -173,6 +182,7 @@ You can change very few lines of code in order to make this app your own. Howeve
 
 [(Back to top)](#table-of-contents)
 
+- use SFC (single file component) to organize Vue components
 - adding new games
 - adding algorythms for chords
 - improving layout
