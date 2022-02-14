@@ -43,6 +43,8 @@ If you want to run this app without an internet connection or you want use your 
 
 ### MODULARITY:
 VueJs framework allows you to extend the application with new games, new input methods, new widgets and functions.
+
+![image](https://github.com/Rhapsodizer/img/blob/main/modularity.PNG?raw=true)
 ### HARMONY:
 The content of the games concerns the harmonic part of music, in particular the recognition of notes and scales. This can be extended to other aspects.
 ### INPUT METHODS:
@@ -51,6 +53,7 @@ The game "Guess Note" allows you to choose different input methods to give answe
 If you choose your mic as input method you can see a real-time frequency spectrogram and capture your answer. You can play an instrument or sing the note or whistle!
 ### SCORE BOARD
 Your scores are saved in the cloud thanks to a Firebase database.
+
 ![image](https://github.com/Rhapsodizer/img/blob/main/Cattura.PNG?raw=true)
 
 
@@ -70,22 +73,101 @@ a listener inside parent.
 main.js, index.html, main.css
    |
    |
+   |----global variables
+   |
    |----general functions
    |
-   |----mainmenu-------------------------------------------------------------< [listener]       <----|  <----|
-   |                |         |            |           |                                             |       |
-   |                data      [mounted]    methods     template                                      |       |
-   |                                                                                                 |       |
-   |                                                                                                 |       |
-   |----game1-----------------------------------------------------> [emitter]........................|       |
-   |                |         |            |           |                                                     |
-   |                data      [mounted]    methods     template                                              |
-   |                                                                                                         |
-   |----game2-----------------------------------------------------> [emitter]................................|
+   |----mainmenu----------------------------------------
+   |                |         |            |           |               
+   |                data      [mounted]    methods     template                             
+   |                                                                                        
+   |                                                                                                
+   |----game1-----------------------------------------------------< [listener] < . . . . .
+   |                |         |            |           |                                 .                   
+   |                data      [mounted]    methods     template                          .                    
+   |                                                                                     .
+   |                                                                                     .
+   |                                                                                     .
+   |                                                                                     .
+   |----widget1---------------------------------------------------> [emitter] >. . . . . .
+   |                 |         |            |           |                                ^                                  
+   |                data      [mounted]    methods     template                          .
+   |                                                                                     .
+   |                                                                                     .
+   |                                                                                     .
+   |                                                                                     .
+   |                                                                                     .
+   |----widget2---------------------------------------------------> [emitter] >. . . . . .
+   |                 |         |            |           |                                                     
+   |                data      [mounted]    methods     template 
+   |
+   |
+   |---- ...
+   |
+   |----game2-------------------------------------------
    |                |         |            |           |
    |                data      [mounted]    methods     template
    |---- ...
 </pre>
+
+### Global variables
+
+[(Back to top)](#table-of-contents)
+
+- Array containing name og notes (only sharp)
+  
+    `const notes = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']`
+ 
+- Matrix containing frequency values for every note
+
+     ```
+     const frequencies = [
+       [440.00, 880.00, 1760.00, 3520.00],
+       [466.16, 932.33, 1864.66, 3729.31],
+       [493.88, 987.77, 1975.53, 3951.07],
+       [523.25, 1046.50, 2093.00, 4186.01],
+       [554.37, 1108.73, 2217.46, 4434.92],
+       [587.33, 1174.66, 2349.32, 4698.63],
+       [622.25, 1244.51, 2489.02, 4978.03],
+       [659.25, 1318.51, 2637.02, 5274.04],
+       [698.46, 1396.91, 2793.83, 5587.65],
+       [739.99, 1479.98, 2959.96, 5919.91],
+       [783.99, 1567.98, 3135.96, 6271.93],
+       [830.61, 1661.22, 3322.44, 6644.88]
+    ]
+   ```
+- Vector containing the name of the scales and the relative distances
+
+     ```
+     const distances = [
+         ["ionian",    [2,2,1,2,2,2,1]],
+         ["dorian",    [1,2,2,1,2,2,2]],
+         ["phrygian",  [2,1,2,2,1,2,2]],
+         ["lydian",    [2,2,1,2,2,1,2]],
+         ["mixolydian",[2,2,2,1,2,2,1]],
+         ["aeolian",   [1,2,2,2,1,2,2]],
+         ["locrian",   [2,1,2,2,2,1,2]]]
+      ]
+   ```
+ - Matrix containing MIDI values for every note
+ 
+ 
+     ```
+    const midiNotes = [
+      [9, 21, 33, 45, 57, 69, 81, 93, 105, 117],
+      [10, 22, 34, 46, 58, 70, 82, 94, 106, 118],
+      [11, 23, 35, 47, 59, 71, 83, 95, 107, 119],
+      [0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120],
+      [1, 13, 25, 37, 49, 61, 73, 85, 97, 109, 121],
+      [2, 14, 26, 38, 50, 62, 74, 86, 98, 110, 122],
+      [3, 15, 27, 39, 51, 63, 75, 87, 99, 111, 123],
+      [4, 16, 28, 40, 52, 64, 76, 88, 100, 112, 124],
+      [5, 17, 29, 41, 53, 65, 77, 89, 101, 113, 125],
+      [6, 18, 30, 42, 54, 66, 78, 90, 102, 114, 126],
+      [7, 19, 31, 43, 55, 67, 79, 91, 103, 115, 127],
+      [8, 20, 32, 44, 56, 68, 80, 92, 104, 116]
+   ]
+   ```
 
 ### Components
 
@@ -109,6 +191,8 @@ main.js, index.html, main.css
 
 ### Global functions
 
+[(Back to top)](#table-of-contents)
+
 - `function play(note, fundamental)` : play single tone in respect to the fundamental (based on the scale)
 
 - `function playScale()` : play the seven notes of a given scale
@@ -118,6 +202,8 @@ main.js, index.html, main.css
 - `function shuffle(array)` : randomize an array, used for randomizing answers and notes in "Reorder Note" games. Fisher-Yates Shuffle
 
 ### Relevant functions inside components
+
+[(Back to top)](#table-of-contents)
 
 - `randomScale()` : retrive random scale using `notes` and `distances` arrays
 
