@@ -1,0 +1,788 @@
+// Global variables:------------------------------------------------------
+const notes = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
+
+const frequencies = [
+    [440.00, 880.00, 1760.00, 3520.00],
+    [466.16, 932.33, 1864.66, 3729.31],
+    [493.88, 987.77, 1975.53, 3951.07],
+    [523.25, 1046.50, 2093.00, 4186.01],
+    [554.37, 1108.73, 2217.46, 4434.92],
+    [587.33, 1174.66, 2349.32, 4698.63],
+    [622.25, 1244.51, 2489.02, 4978.03],
+    [659.25, 1318.51, 2637.02, 5274.04],
+    [698.46, 1396.91, 2793.83, 5587.65],
+    [739.99, 1479.98, 2959.96, 5919.91],
+    [783.99, 1567.98, 3135.96, 6271.93],
+    [830.61, 1661.22, 3322.44, 6644.88]
+]
+
+const distances = [["ionian",    [2,2,1,2,2,2,1]],
+                   ["dorian",    [1,2,2,1,2,2,2]],
+                   ["phrygian",  [2,1,2,2,1,2,2]],
+                   ["lydian",    [2,2,1,2,2,1,2]],
+                   ["mixolydian",[2,2,2,1,2,2,1]],
+                   ["aeolian",   [1,2,2,2,1,2,2]],
+                   ["locrian",   [2,1,2,2,2,1,2]]]
+
+const midiNotes = [
+    [9, 21, 33, 45, 57, 69, 81, 93, 105, 117],
+    [10, 22, 34, 46, 58, 70, 82, 94, 106, 118],
+    [11, 23, 35, 47, 59, 71, 83, 95, 107, 119],
+    [0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120],
+    [1, 13, 25, 37, 49, 61, 73, 85, 97, 109, 121],
+    [2, 14, 26, 38, 50, 62, 74, 86, 98, 110, 122],
+    [3, 15, 27, 39, 51, 63, 75, 87, 99, 111, 123],
+    [4, 16, 28, 40, 52, 64, 76, 88, 100, 112, 124],
+    [5, 17, 29, 41, 53, 65, 77, 89, 101, 113, 125],
+    [6, 18, 30, 42, 54, 66, 78, 90, 102, 114, 126],
+    [7, 19, 31, 43, 55, 67, 79, 91, 103, 115, 127],
+    [8, 20, 32, 44, 56, 68, 80, 92, 104, 116]
+]
+//------------------------------------------------------------------------
+
+// Initalize Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyCbrwtBDz-tE3io_qU-TazOuCsWdzDafBg",
+    authDomain: "rhapsodizer-703a1.firebaseapp.com",
+    projectId: "rhapsodizer-703a1",
+    storageBucket: "rhapsodizer-703a1.appspot.com",
+    messagingSenderId: "499657467111",
+    appId: "1:499657467111:web:9ed371301b9e160def2e42"
+}
+firebase.initializeApp(firebaseConfig)
+const db = firebase.firestore()
+
+// Initialize Audio
+const c = new AudioContext()
+
+// Global functions:--------------------------------------------------------
+
+//Play note of shifted "notes" array (shifting based on first note of scale)
+function play(note, fundamental) {
+    const attack = 0.01;
+    const release = 0.2;
+    i = shiftArray(fundamental).indexOf(note)
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.frequency.value = 220*Math.pow(2, i/12);
+    o.connect(g);
+    g.connect(c.destination);
+    const now = c.currentTime;
+    g.gain.setValueAtTime(0, now)
+    g.gain.linearRampToValueAtTime(1, now + attack)
+    g.gain.linearRampToValueAtTime(0, now + attack + release)
+    o.start();
+    o.stop(now + attack + release);
+}
+
+function playScale() {
+    //Using IIFE Immediately invoked function expression
+    for (i=0; i<7; i++){
+        (function(val) {
+            setTimeout(function () {play(scale[val], scale[0])}, 270*val)
+        })(i);
+    }
+}
+
+// Intended for shifting "notes" array
+function shiftArray(index) {
+    // Index must be a string
+    if (isNaN(index)) {
+        toShift = [...notes]
+        f = toShift.indexOf(index)
+        for (i=0; i<f; i++) {
+            toShift.push(toShift[i])
+            toShift[i] = "not"
+        }
+        shifted = toShift
+    }
+    return shifted
+}
+
+// Fisher-Yates (aka Knuth) Shuffle
+function shuffle(array) {
+  let currentIndex = array.length,  randomIndex;
+  while (currentIndex != 0) {
+
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+  return array;
+}
+
+// Vue -----------------------------------------------------------------------
+
+// Main app
+const app = Vue.createApp({})
+
+app.component('mainmenu', {
+    data() {
+        return{
+            currentPage: null,
+            games: ['Guess Note', 'Guess Scale', 'Reorder Notes'],
+            theme: 'dark mode'
+        }
+    },
+    methods:{
+        // Change from light mode to dark mode
+        switchTheme() {
+            var element = document.body;
+            element.classList.toggle("dark-mode");
+            if (this.theme == "dark mode"){
+                this.theme = "ligth mode"
+            } else {
+                this.theme = "dark mode"
+            }
+        }
+    },
+    template: `
+        <div><button @click="switchTheme">{{ theme }}</button></div>
+        <h1> GAMES: <button v-for='game in games' @click="currentPage = game">{{ game }}</button></h1>
+
+        <!-- Game container -->
+        <div id="game">
+            <component :is='currentPage' />
+        </div>
+    `
+})
+
+app.component('Guess Note', {
+    data() {
+        return{
+            scale: null,
+            generatedScale: null,
+            generatedScaleName: null,
+            generatedAnswers: null,
+            correctAnswer: null,
+            started: false,
+            score: 0,
+            questionsNumberTot: 10,
+            questionsNumberDone: 0,
+            hint: false,
+
+            // Alternative inputs
+            checked: false,
+            checked2: false,
+            checked3: false,
+
+            // Leaderboard
+            leaderboard: false,
+            nameList: [],
+            scoreList: []
+        }
+    },
+    mounted(){
+        // Firebase communication
+        db.collection("guessNote").orderBy("score", "desc").onSnapshot((snapshot) => {
+            const data = snapshot.docs.map((doc) => ({
+                ...doc.data(),
+            }))
+            for (i=0; i<data.length; i++){
+                this.nameList[i] = data[i].name
+                this.scoreList[i] = data[i].score
+            }
+        })
+    },
+    methods: {
+        generateScale() {
+            this.questionsNumberDone +=1
+            // Generate scale
+            this.randomScale()
+            this.generatedScale = [...this.scale]
+            // Choose correct answer
+            var pos = Math.floor(Math.random()*7)
+            this.correctAnswer = this.generatedScale[pos]
+            // Visualize underscore in place of correct note
+            this.generatedScale[pos] = '_'
+            // Generate possible answers
+            this.generateAnswers()
+        },
+        randomScale() {
+            scale = []
+            //Random starting note
+            f_index = Math.floor(Math.random()*12)
+            fundamental = notes[f_index]
+            //Random scale type
+            r = Math.floor(Math.random()*7)
+            this.generatedScaleName = distances[r][0]
+            typeDist = distances[r][1]
+            //Build scale
+            list = shiftArray(fundamental)
+            scale[0] = fundamental
+            index = 0
+            for (i=0; i<6; i++){
+                index += typeDist[i]
+                scale.push(list[f_index + index])
+            }
+            this.scale = scale
+        },
+        generateAnswers() {
+            // Exclude existing notes from answers...
+            const notes_tmp = [...notes].filter(x => scale.indexOf(x) === -1)
+            // ...but not the correct one
+            const generatedAnswers = [this.correctAnswer]
+            // Generate other 3 unique answers
+            while (generatedAnswers.length<4){
+                var el = notes_tmp[Math.floor(Math.random()*5)]
+                if ((new Set(generatedAnswers)).has(el)){
+                    continue
+                } else {
+                    generatedAnswers.push(el)
+                }
+            }
+            // return shuffled answers
+            this.generatedAnswers = shuffle(generatedAnswers)
+        },
+        checkAnswer(e) {
+            // Check if correct or not
+            if(e == this.correctAnswer){
+                this.correct = true
+                this.score += 1
+                // Show complete correct scale
+                this.generatedScale = [...this.scale]
+                playScale()
+            } else {
+                alert("You died! Correct answer is " + this.correctAnswer)
+            }
+
+            // All questions completed: sign score and show leaderboard
+            if(this.questionsNumberDone == this.questionsNumberTot){
+                alert("Total score: " + this.score + "/" + this.questionsNumberTot)
+                name = prompt("Enter nickname: ")
+                db.collection("guessNote").add({"name": name, "score": this.score})
+                this.started = false
+                this.leaderboard = true
+            }
+
+            // Wait before next question
+            setTimeout(this.generateScale, 1800)
+        },
+        resetGame() {
+            this.score = 0
+            this.questionsNumberDone = 0
+            this.leaderboard = false
+        },
+        showLeaderBoard(){
+            if(this.leaderboard == true){
+                this.leaderboard = false
+            }else{
+                this.leaderboard = true
+            }
+        }
+    },
+    template: `
+        <h2><button @click="started=true; resetGame(); generateScale()">New game</button>
+        <button @click="showLeaderBoard">Leaderboard</button></h2>
+        <p><div v-if="started==true"> Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></p>
+
+        <!-- When new game starts -->
+        <div v-if="started">
+            <div class="draggable" v-for="note in generatedScale">{{ note }}</div>
+            <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button></h4>
+            <div>
+                <h4>
+                <button onclick="playScale()">Listen scale</button>
+                <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button></h4>
+            </div>
+            <div><button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button></div>
+            <div>
+                <input type="checkbox" v-model="checked">Use mic
+                <input type="checkbox" v-model="checked2">Use keyboard
+                <input type="checkbox" v-model="checked3">Use MIDI
+            </div>
+        </div>
+
+        <!-- Alternative inputs -->
+        <visualizer v-if="checked" @sendAnswer=checkAnswer></visualizer>
+        <midiInput v-if="checked3" @sendMIDI=checkAnswer></midiInput>
+        <div><PianoKeyboard v-if="checked2" @sendKey=checkAnswer></PianoKeyboard></div>
+
+        <!-- Leaderboard -->
+        <div id="leaderboard" v-if="leaderboard">
+            Leader Board:
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Score</th>
+                </tr>
+                <tr>
+                    <td><ol><li v-for="item in nameList">{{ item }}</li></ol></td>
+                    <td><ul><li v-for="item in scoreList">{{ item }}</li></ul></td>
+                </tr>
+            </table>
+        </div>
+    `
+})
+
+app.component('Guess Scale', {
+    data() {
+        return{
+            scale: null,
+            generatedScale: null,
+            generatedScaleName: null,
+            generatedAnswers: null,
+            correctAnswer: null,
+            started: false,
+            score: 0,
+            questionsNumberTot: 10,
+            questionsNumberDone: 0,
+
+            // Leaderboard
+            leaderboard: false,
+            nameList: [],
+            scoreList: []
+        }
+    },
+    mounted(){
+        // Firebase communication
+        db.collection("guessScale").orderBy("score", "desc").onSnapshot((snapshot) => {
+            const data = snapshot.docs.map((doc) => ({
+                ...doc.data(),
+            }))
+            for (i=0; i<data.length; i++){
+                this.nameList[i] = data[i].name
+                this.scoreList[i] = data[i].score
+            }
+        })
+    },
+    methods: {
+        generateScale() {
+            this.questionsNumberDone +=1
+            // Generate scale
+            this.randomScale()
+            this.generatedScale = [...this.scale]
+            this.generateAnswers()
+        },
+        randomScale() {
+            scale = []
+            //Random starting note
+            f_index = Math.floor(Math.random()*12)
+            fundamental = notes[f_index]
+            //Random scale type
+            r = Math.floor(Math.random()*7)
+            this.generatedScaleName = distances[r][0]
+            typeDist = distances[r][1]
+            //Build scale
+            list = shiftArray(fundamental)
+            scale[0] = fundamental
+            index = 0
+            for (i=0; i<6; i++){
+                index += typeDist[i]
+                scale.push(list[f_index + index])
+            }
+            this.scale = scale
+        },
+        generateAnswers() {
+            // Include correct answer
+            const generatedAnswers = [this.generatedScaleName]
+            // Generate other 3 unique answers
+            while (generatedAnswers.length<4){
+                var el = distances[Math.floor(Math.random()*5)][0]
+                if ((new Set(generatedAnswers)).has(el)){
+                    continue
+                } else {
+                    generatedAnswers.push(el)
+                }
+            }
+            // return shuffled answers
+            this.generatedAnswers = shuffle(generatedAnswers)
+        },
+        checkAnswer(e) {
+            // Check if correct or not
+            if(e == this.generatedScaleName){
+                this.correct = true
+                this.score += 1
+                // Show complete correct scale
+                this.generatedScale = [...this.scale]
+                playScale()
+            } else {
+                alert("You died! Correct answer is " + this.generatedScaleName)
+            }
+
+            // All questions completed
+            if(this.questionsNumberDone == this.questionsNumberTot){
+                alert("Total score: " + this.score + "/" + this.questionsNumberTot)
+                name = prompt("Enter nickname: ")
+                db.collection("guessScale").add({"name": name, "score": this.score})
+                this.started = false
+                this.leaderboard = true
+            }
+
+            // Wait before next scale
+            setTimeout(this.generateScale, 1800)
+        },
+        resetGame() {
+            this.score = 0
+            this.questionsNumberDone = 0
+            this.leaderboard = false
+        },
+        showLeaderBoard(){
+            if(this.leaderboard == true){
+                this.leaderboard = false
+            }else{
+                this.leaderboard = true
+            }
+        }
+    },
+    template: `
+        <h2><button @click="started=true; resetGame(); generateScale()">New game</button>
+        <button @click="showLeaderBoard">Leaderboard</button></h2>
+        <p><div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div></p>
+
+        <!-- When game starts -->
+        <div v-if="started">
+            <div class="draggable" v-for="note in generatedScale">{{ note }}</div>
+            <h4><button v-for="guess in generatedAnswers" v-on:click="checkAnswer(guess)">{{ guess }}</button></h4>
+            <button onclick="playScale()">Listen scale</button>
+            <div> <button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button></div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div id="leaderboard" v-if="leaderboard">
+            Leader Board:
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Score</th>
+                </tr>
+                <tr>
+                    <td><ol><li v-for="item in nameList">{{ item }}</li></ol></td>
+                    <td><ul><li v-for="item in scoreList">{{ item }}</li></ul></td>
+                </tr>
+            </table>
+        </div>
+    `
+})
+
+app.component('Reorder Notes', {
+    data() {
+        return{
+            scale: null,
+            generatedScale: null,
+            generatedScaleName: null,
+            started: false,
+            score: 0,
+            questionsNumberTot: 10,
+            questionsNumberDone: 0,
+            clicked: false,
+            firstNote: null,
+            secondNote: null,
+            moves: 0,
+            hint: false,
+
+            // Leaderboard
+            leaderboard: false,
+            nameList: [],
+            scoreList: []
+        }
+    },
+    mounted(){
+        // Firebase communication
+        db.collection("reorderNotes").orderBy("moves", "asc").onSnapshot((snapshot) => {
+            const data = snapshot.docs.map((doc) => ({
+                ...doc.data(),
+            }))
+            for (i=0; i<data.length; i++){
+                this.nameList[i] = data[i].name
+                this.scoreList[i] = data[i].moves
+            }
+        })
+    },
+    methods: {
+        generateScale() {
+            this.questionsNumberDone +=1
+            // Generate scale
+            this.randomScale()
+            // Shuffle array
+            this.generatedScale = shuffle([...this.scale])
+        },
+        randomScale() {
+            scale = []
+            //Random starting note
+            f_index = Math.floor(Math.random()*12)
+            fundamental = notes[f_index]
+            //Random scale type
+            r = Math.floor(Math.random()*7)
+            this.generatedScaleName = distances[r][0]
+            typeDist = distances[r][1]
+            //Build scale
+            list = shiftArray(fundamental)
+            scale[0] = fundamental
+            index = 0
+            for (i=0; i<6; i++){
+                index += typeDist[i]
+                scale.push(list[f_index + index])
+            }
+            this.scale = scale
+            // Debug (or cheating)
+            console.log(this.scale)
+        },
+        checkAnswer() {
+            // Check if correct or not
+            if (this.generatedScale.every(function(el, idx){return el == this.scale[idx]})) {
+                playScale()
+                // All questions completed: enter score and show leaderboard
+                if(this.questionsNumberDone == this.questionsNumberTot){
+                    alert("Total score: " + this.score + "/" + this.questionsNumberTot)
+                    name = prompt("Enter nickname: ")
+                    db.collection("reorderNotes").add({"name": name, "moves": this.score})
+                    this.started = false
+                    this.leaderboard = true
+                }
+                // Wait before next question
+                setTimeout(this.generateScale, 1800)
+            }
+        },
+        resetGame() {
+            this.score = 0
+            this.questionsNumberDone = 0
+            this.moves = 0
+            this.leaderboard = false
+        },
+        // Swap two clicked notes
+        swap(el) {
+            if (this.clicked == true){
+                this.secondNote = el
+                document.getElementById(this.secondNote).style.backgroundColor = "yellow"
+                a = this.generatedScale.indexOf(this.firstNote)
+                b = this.generatedScale.indexOf(this.secondNote)
+                this.generatedScale[a] = this.secondNote
+                this.generatedScale[b] = this.firstNote
+                this.clicked = false
+                this.moves += 1
+                clear(this.firstNote, this.secondNote)
+                this.checkAnswer()
+            } else {
+                this.clicked = true
+                this.firstNote = el
+                document.getElementById(this.firstNote).style.backgroundColor = "yellow"
+            }
+            // Wait to finish animation
+            function clear(firstNote,secondNote) {
+                setTimeout(function(){
+                    document.getElementById(firstNote).style.backgroundColor = null;
+                    document.getElementById(secondNote).style.backgroundColor = null;
+                }, 400)
+
+            }
+        },
+        showLeaderBoard(){
+            if(this.leaderboard == true){
+                this.leaderboard = false
+            }else{
+                this.leaderboard = true
+            }
+        }
+    },
+    template: `
+        <h2><button @click="started=true; resetGame(); generateScale()">New game</button>
+        <button @click="showLeaderBoard">Leaderboard</button></h2>
+        <p><div v-if="started==true">Question {{ questionsNumberDone }} Score: {{ score }}/{{ questionsNumberTot }}</div>
+        <div v-if="started==true">Moves: {{ moves }}</div></p>
+
+        <!-- When game start -->
+        <div v-if="started">
+            <div class="draggable" v-for="note in generatedScale" v-bind:id="note" @click="swap(note)">{{ note }}</div>
+            <h4><button onclick="playScale()">Listen scale</button>
+            <button id="hint" @click="this.hint = true">{{hint ? generatedScaleName : 'Hint'}}</button></h4>
+            <div><button v-if="questionsNumberDone < questionsNumberTot" @click="generateScale(); questionsNumberDone += 1">Skip</button></div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div id="leaderboard" v-if="leaderboard">
+            Leader Board:
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Moves</th>
+                </tr>
+                <tr>
+                    <td><ol><li v-for="item in nameList">{{ item }}</li></ol></td>
+                    <td><ul><li v-for="item in scoreList">{{ item }}</li></ul></td>
+                </tr>
+            </table>
+        </div>
+        `
+})
+
+app.component('PianoKeyboard', {
+    data(){
+        return{
+          note: null
+        }
+    },
+    emits: ['sendKey'],
+    methods: {
+      keyPressed(e){
+        notePressed = e.target.innerText
+        notePressed = notePressed.replace('2','')
+        this.note = notePressed
+        //console.log(this.note)
+        this.$emit('sendKey', this.note)
+      }
+    },
+    template: `
+      <ul id="keyboard">
+        <li note="C" @click="keyPressed" class="white">C</li>
+        <li note="C#" @click="keyPressed" class="black">C#</li>
+        <li note="D" @click="keyPressed" class="white offset">D</li>
+        <li note="D#" @click="keyPressed" class="black">D#</li>
+        <li note="E" @click="keyPressed" class="white offset">E</li>
+        <li note="F" @click="keyPressed" class="white">F</li>
+        <li note="F#" @click="keyPressed" class="black">F#</li>
+        <li note="G" @click="keyPressed" class="white offset">G</li>
+        <li note="G#" @click="keyPressed" class="black">G#</li>
+        <li note="A" @click="keyPressed" class="white offset">A</li>
+        <li note="A#" @click="keyPressed" class="black">A#</li>
+        <li note="B" @click="keyPressed" class="white offset">B</li>
+        <li note="C" @click="keyPressed" class="white">C2</li>
+        <li note="C#" @click="keyPressed" class="black">C#2</li>
+        <li note="D" @click="keyPressed" class="white offset">D2</li>
+        <li note="D#" @click="keyPressed" class="black">D#2</li>
+        <li note="E" @click="keyPressed" class="white offset">E2</li>
+      </ul>
+    `
+})
+
+app.component('visualizer', {
+    data() {
+        return{
+            note: "-",
+            dataArray: null,
+            analyser: null,
+            canvas: null,
+            bufferLength: 0,
+            bin_range: null
+        }
+    },
+    emits: ['sendAnswer'],
+    async mounted() {
+
+        //Can await beause it's an async function
+        var stream = await navigator.mediaDevices.getUserMedia({audio:true});
+        //Media stream source
+        var mss = c.createMediaStreamSource(stream);
+
+        this.canvas = document.getElementById("freq");
+        ctx = this.canvas.getContext("2d");
+
+        // Create analyser node
+        this.analyser = c.createAnalyser();
+        this.analyser.fftSize = 1024;
+        this.analyser.smoothingTimeConstant = 0.95;
+
+        mss.connect(this.analyser)
+
+        // Initialize data
+        this.bufferLength = this.analyser.frequencyBinCount;
+        this.dataArray = new Float32Array(this.bufferLength);
+        // Calculate frequency bin range
+        this.bin_range = c.sampleRate/this.analyser.fftSize
+
+        // Visualize spectrum
+        this.draw()
+
+    },
+    methods: {
+        draw() {
+
+            //Get spectrum data
+            this.analyser.getFloatFrequencyData(this.dataArray)
+
+            //Get pitch
+            this.note = this.getPitch(this.dataArray)
+            if (this.note != null) {
+                console.log(this.note)
+            }
+
+            //Draw background
+            //ctx.fillStyle = 'rgb(255, 255, 255)' //white
+            ctx.fillStyle = 'rgb(245, 227, 227)';
+            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+
+            //Draw spectrum
+            const barWidth = (this.canvas.width / this.bufferLength) * 2.5
+            let posX = 0;
+            for (let i = 0; i < this.bufferLength; i++) {
+              const barHeight = (this.dataArray[i] + 140) * 2
+              ctx.fillStyle = 'rgb(0, 0, 0)'
+              ctx.fillRect(posX, this.canvas.height - barHeight / 2, barWidth, barHeight / 2)
+              posX += barWidth + 1
+            }
+            //Schedule next redraw
+            requestAnimationFrame(this.draw)
+        },
+        getPitch(array) {
+           max = Math.max(...array)
+           idx = array.indexOf(max)
+           freqMax = idx*this.bin_range
+           freqMin = freqMax - this.bin_range
+           note = null
+           // Confront maximum amplitude with frequencies array
+           for (i=0; i<12; i++) {
+               for (k=0; k<5; k++) {
+                   if (frequencies[i][k]>=freqMin && frequencies[i][k]<freqMax) {
+                       note = notes[i]
+                   }
+               }
+           }
+           return note
+       }
+    },
+    template: `
+        <canvas id="freq"></canvas>
+        <button @click="this.$emit('sendAnswer', this.note)">Capture answer {{ note }}</button>
+    `
+})
+
+app.component('midiInput', {
+    data(){
+        return{
+            midiNote: null,
+            pitch: null
+        }
+    },
+    emits: ['sendMIDI'],
+    async mounted() {
+        if (navigator.requestMIDIAccess) {
+            console.log('This browser supports WebMIDI!')
+        } else {
+            console.log('WebMIDI is not supported in this browser.')
+        }
+
+        navigator.requestMIDIAccess().then(this.onMIDISuccess, this.onMIDIFailure)
+
+    },
+    methods: {
+        onMIDISuccess(midiAccess) {
+            for (var input of midiAccess.inputs.values()){
+                input.onmidimessage = this.getMIDIMessage
+            }
+        },
+        onMIDIFailure() {
+            console.log('Could not access your MIDI devices.');
+        },
+        getMIDIMessage(message) {
+            if (message.data[0] == 144){
+                this.midiNote = message.data[1]
+            } else if (message.data[0] == 128) {
+                for (i=0; i<12; i++){
+                    if (midiNotes[i].includes(this.midiNote)){
+                        this.pitch = notes[i]
+                        console.log(this.pitch)
+                        // Check correct answer
+                        this.$emit('sendMIDI', this.pitch)
+                        break
+                    }
+                }
+            }
+        }
+    }
+})
+
+
+// Mount App
+const mountedApp = app.mount('#app')

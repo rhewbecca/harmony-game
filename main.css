@@ -1,0 +1,254 @@
+/*
+    style for note buttons
+*/
+.draggable{
+    width: 5%;
+    height: 40px;
+    border: 2px solid black;
+    text-align: center;
+    cursor: pointer;
+    border:0.16em solid rgba(255, 255, 255, 0);
+    border-radius:2em;
+    border-color: #000000;
+    background-color: #d1e42b;
+    padding:0.5em 3em;
+    margin:0 0.1em 0.1em 0;
+    font-weight: 400;
+    font-display: auto;
+    box-sizing: border-box;
+    color:#000000;
+    text-shadow: 0 0.04em 0.04em rgba(0,0,0,0.35);
+    transition: all 0.2s;
+    text-decoration:none;
+    text-transform: uppercase;
+}
+
+/*
+    background style for light and dark themes
+*/
+body {
+    padding: 25px;
+    background-image: linear-gradient(to right, rgba(245, 227, 227, 0.856) , rgb(235, 235, 194));
+    color: rgb(0, 0, 51);
+    font-size: 20px;
+}
+.dark-mode {
+    background-image: linear-gradient(to right, #0a1c3d , rgb(11, 35, 49));
+    color: rgb(253, 253, 253);
+    background-color: #2b66e4;
+    border-color: #ffffff;
+}
+
+/*
+    style for all app and games' buttons,
+    the buttons' style changes when the pointer
+    moves upon them and when buttons are selected
+*/
+button{
+    padding:0.5em 3em;
+    margin:0 0.1em 0.1em 0;
+    border:0.16em solid rgba(255, 255, 255, 0);
+    border-radius:2em;
+    box-sizing: border-box;
+    background-color: #e77575;
+    text-decoration:none;
+    text-transform: uppercase;
+    font-weight: 400;
+    color:#000000;
+    text-shadow: 0 0.04em 0.04em rgba(0,0,0,0.35);
+    text-align: center;
+    transition: all 0.2s;
+}
+button:hover{
+    border-color: rgb(20, 11, 11);
+    cursor: pointer;
+}
+button:active {
+    background-color: #e0f376;
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+  }
+@media all and (max-width:30em){
+    button{
+        display:block;
+        margin:0.2em auto;
+    }
+}
+
+/*
+    style for the games bar
+*/
+h1{
+    float:inline-start;
+    margin:0 auto;
+    clear:left;
+    height:auto;
+    z-index: 0;
+    text-align: center;
+    font-size: larger;
+    font-weight: bold;
+    font-display: center;
+    position: relative;
+}
+
+/*
+    style for the "new game" and "leaderboard" bar
+*/
+h2{
+    float: inline-start;
+    margin:0 auto;
+    clear:left;
+    height:auto;
+    z-index: 0;
+    font-size: large;
+    font-weight: bold;
+    font-display: center;
+    position: relative;
+}
+
+/*
+    style for bottom bar
+*/
+h4{
+    position: relative;
+    text-align: justify;
+    font-size: larger;
+    font-weight: bold;
+    font-display: center;
+    height: auto;
+}
+
+/*
+    visualizer' canva style
+*/
+canvas{
+    width:500px;
+    height:200px;
+    align-items: center;
+}
+
+/*
+    piano keyboard style
+*/
+*, *::before, *::after {
+    box-sizing: border-box;
+    font-family: 'Roboto',sans-serif;
+  }
+
+:root {
+    --keyboard: hsla(0, 0%, 0%, 0.664);
+    --keyboard-shadow: hsla(19, 50%, 66%, 0.2);
+    --keyboard-border: hsl(20, 91%, 5%);
+    --black-10: hsla(0, 0%, 0%, 0.1);
+    --black-20: hsla(0, 0%, 0%, 0.2);
+    --black-30: hsla(0, 0%, 0%, 0.3);
+    --black-50: hsla(0, 0%, 0%, 0.5);
+    --black-60: hsla(0, 0%, 0%, 0.6);
+    --white-20: hsla(0, 0%, 100%, 0.2);
+    --white-50: hsla(0, 0%, 100%, 0.5);
+    --white-80: hsla(0, 0%, 100%, 0.8);
+}
+
+.white,
+.black {
+  position: relative;
+  float: left;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 0.5rem 0;
+  user-select: none;
+  cursor: pointer;
+}
+
+#keyboard li:first-child {
+    border-radius: 5px 0 5px 5px;
+}
+
+#keyboard li:last-child {
+border-radius: 0 5px 5px 5px;
+}
+
+.white {
+    height: 12.5rem;
+    width: 3.5rem;
+    z-index: 1;
+    border-left: 1px solid hsl(0, 0%, 73%);
+    border-bottom: 1px solid hsl(0, 0%, 73%);
+    border-radius: 0 0 5px 5px;
+    box-shadow: -1px 0 0 var(--white-80) inset, 0 0 5px hsl(0, 0%, 80%) inset,
+      0 0 3px var(--black-20);
+    background: linear-gradient(to bottom, hsl(0, 0%, 93%) 0%, white 100%);
+    color: var(--black-30);
+}
+
+.black {
+    height: 8rem;
+    width: 2rem;
+    margin: 0 0 0 -1rem;
+    z-index: 2;
+    border: 1px solid black;
+    border-radius: 0 0 3px 3px;
+    box-shadow: -1px -1px 2px var(--white-20) inset,
+        0 -5px 2px 3px var(--black-60) inset, 0 2px 4px var(--black-50);
+    background: linear-gradient(45deg, hsl(0, 0%, 13%) 0%, hsl(0, 0%, 33%) 100%);
+    color: var(--white-50);
+}
+
+.white.pressed {
+    border-top: 1px solid hsl(0, 0%, 47%);
+    border-left: 1px solid hsl(0, 0%, 60%);
+    border-bottom: 1px solid hsl(0, 0%, 60%);
+    box-shadow: 2px 0 3px var(--black-10) inset,
+      -5px 5px 20px var(--black-20) inset, 0 0 3px var(--black-20);
+    background: linear-gradient(to bottom, white 0%, hsl(0, 0%, 91%) 100%);
+    outline: none;
+}
+
+.black.pressed {
+    box-shadow: -1px -1px 2px var(--white-20) inset,
+        0 -2px 2px 3px var(--black-60) inset, 0 1px 2px var(--black-50);
+    background: linear-gradient(
+        to right,
+        hsl(0, 0%, 27%) 0%,
+        hsl(0, 0%, 13%) 100%
+    );
+    outline: none;
+}
+
+.offset {
+    margin: 0 0 0 -1rem;
+}
+
+#keyboard {
+    height: 15.25rem;
+    width: 41rem;
+    margin: 0.5rem auto;
+    padding: 3rem 0 0 3rem;
+    /*position: relative;*/
+    position: sticky;
+    border: 1px solid var(--keyboard-border);
+    border-radius: 1rem;
+    background-color: var(--keyboard);
+    box-shadow: 0 0 50px var(--black-50) inset, 0 1px var(--keyboard-shadow) inset,
+        0 5px 15px var(--black-50);
+}
+
+/*
+    leaderboard table style
+*/
+ul {
+  list-style-type: none;
+}
+
+table, th, td{
+    border: 1px solid;
+    border-color:#e77575;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #e77575;
+
+}
