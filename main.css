@@ -1,3 +1,6 @@
+/*
+    style for note buttons
+*/
 .draggable{
     width: 5%;
     height: 40px;
@@ -20,6 +23,9 @@
     text-transform: uppercase;
 }
 
+/*
+    background style for light and dark themes
+*/
 body {
     padding: 25px;
     background-image: linear-gradient(to right, rgba(245, 227, 227, 0.856) , rgb(235, 235, 194));
@@ -33,6 +39,11 @@ body {
     border-color: #ffffff;
 }
 
+/*
+    style for all app and games' buttons,
+    the buttons' style changes when the pointer
+    moves upon them and when buttons are selected
+*/
 button{
     padding:0.5em 3em;
     margin:0 0.1em 0.1em 0;
@@ -64,6 +75,9 @@ button:active {
     }
 }
 
+/*
+    style for the games bar
+*/
 h1{
     float:inline-start;
     margin:0 auto;
@@ -77,6 +91,9 @@ h1{
     position: relative;
 }
 
+/*
+    style for the "new game" and "leaderboard" bar
+*/
 h2{
     float: inline-start;
     margin:0 auto;
@@ -89,23 +106,9 @@ h2{
     position: relative;
 }
 
-h3{
-    /*float:inline-end;
-    margin:0 auto;*/
-    margin: -15px;
-    clear:left;
-    height:auto;
-    z-index: 0;
-    text-align: center;
-    font-size: larger;
-    font-weight: bold;
-    font-display: center;
-    position: fixed;
-    bottom: 10px;
-    left: 50%;
-    margin-left: -104.5px;
-}
-
+/*
+    style for bottom bar
+*/
 h4{
     position: relative;
     text-align: justify;
@@ -115,12 +118,18 @@ h4{
     height: auto;
 }
 
+/*
+    visualizer' canva style
+*/
 canvas{
     width:500px;
     height:200px;
     align-items: center;
 }
 
+/*
+    piano keyboard style
+*/
 *, *::before, *::after {
     box-sizing: border-box;
     font-family: 'Roboto',sans-serif;
@@ -225,6 +234,9 @@ border-radius: 0 5px 5px 5px;
         0 5px 15px var(--black-50);
 }
 
+/*
+    leaderboard table style
+*/
 ul {
   list-style-type: none;
 }
