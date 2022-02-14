@@ -546,7 +546,7 @@ app.component('Reorder Notes', {
         swap(el) {
             if (this.clicked == true){
                 this.secondNote = el
-                document.getElementById(this.secondNote).style.backgroundColor = "yellow"
+                document.getElementById(this.secondNote).style.backgroundColor = "orange"
                 a = this.generatedScale.indexOf(this.firstNote)
                 b = this.generatedScale.indexOf(this.secondNote)
                 this.generatedScale[a] = this.secondNote
@@ -558,7 +558,7 @@ app.component('Reorder Notes', {
             } else {
                 this.clicked = true
                 this.firstNote = el
-                document.getElementById(this.firstNote).style.backgroundColor = "yellow"
+                document.getElementById(this.firstNote).style.backgroundColor = "orange"
             }
             // Wait to finish animation
             function clear(firstNote,secondNote) {

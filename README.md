@@ -7,7 +7,7 @@
 This is a project for ACTAM course in Politecnico di Milano.
 It's a simple VueJS application containing some games concerning music.
 
- ![image](https://user-images.githubusercontent.com/17109060/32149040-04f3125c-bd25-11e7-8003-66fd29bc18d4.png)
+![image](https://github.com/Rhapsodizer/img/blob/main/screen.PNG?raw=true)
 
 # Table of contents
 
@@ -45,12 +45,24 @@ If you want to run this app without an internet connection or you want use your 
 VueJs framework allows you to extend the application with new games, new input methods, new widgets and functions.
 
 ![image](https://github.com/Rhapsodizer/img/blob/main/modularity.PNG?raw=true)
+
 ### HARMONY:
 The content of the games concerns the harmonic part of music, in particular the recognition of notes and scales. This can be extended to other aspects.
+
 ### INPUT METHODS:
 The game "Guess Note" allows you to choose different input methods to give answers: a traditional four-guesses template, a little beautiful onscreen keyboard, a MIDI device and even a microphone!
+
+Mic input:
+![image](https://github.com/Rhapsodizer/img/blob/main/mic.PNG?raw=true)
+
+CSS keyboard:
+![image](https://github.com/Rhapsodizer/img/blob/main/keyboard.PNG?raw=true)
+
 ### PITCH RECOGNITION:
 If you choose your mic as input method you can see a real-time frequency spectrogram and capture your answer. You can play an instrument or sing the note or whistle!
+
+![image](https://github.com/Rhapsodizer/img/blob/main/spectrogram2.gif?raw=true)
+
 ### SCORE BOARD
 Your scores are saved in the cloud thanks to a Firebase database.
 
